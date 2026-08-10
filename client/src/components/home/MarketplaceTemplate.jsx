@@ -6,6 +6,7 @@ import ProductRail from './ProductRail'
 import CategoryCarousel from './CategoryCarousel'
 import TrustBand from './TrustBand'
 import NewsletterStrip from './NewsletterStrip'
+import { resolveAssetUrl } from '../../utils/media'
 
 function SectionHeader({ title, subtitle, link }) {
   return (
@@ -86,7 +87,7 @@ export default function MarketplaceTemplate({
                 className="group relative rounded-2xl overflow-hidden shadow-lg h-44 md:h-52"
               >
                 <img
-                  src={c.image}
+                  src={resolveAssetUrl(c.image)}
                   alt={c.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

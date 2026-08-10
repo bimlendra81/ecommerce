@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { selectSettings } from '../../features/settingsSlice'
+import { resolveAssetUrl } from '../../utils/media'
 
 export default function HeroSlider({ slides }) {
   const settings = useSelector(selectSettings)
@@ -43,16 +44,17 @@ export default function HeroSlider({ slides }) {
     >
       {slides.map((s, i) => {
         const active = i === index
-        const isVideo = s.image?.includes('.mp4') || s.image?.includes('.webm')
+        const image = resolveAssetUrl(s.image)
+        const isVideo = image?.includes('.mp4') || image?.includes('.webm')
         return (
           <div
             key={s.id}
             className={`absolute inset-0 transition-opacity duration-700 ${active ? 'opacity-100 z-20' : 'opacity-0 z-10 pointer-events-none'}`}
           >
             {isVideo && active ? (
-              <video src={s.image} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+              <video src={image} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
             ) : (
-              <img src={s.image} alt={s.title || ''} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={image} alt={s.title || ''} className="absolute inset-0 w-full h-full object-cover" />
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
             <div className="absolute inset-0 z-10 max-w-7xl mx-auto px-4 md:px-8 flex flex-col justify-center text-white">

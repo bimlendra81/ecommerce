@@ -4,6 +4,7 @@ import client from '../api/adminClient'
 import RichTextEditor from '../components/RichTextEditor'
 import { field, useFormErrors } from '../utils/validation'
 import FieldError from '../components/FieldError'
+import { resolveAssetUrl } from '../utils/media'
 
 const emptyForm = {
   name: '',
@@ -476,7 +477,7 @@ export default function AdminProductForm() {
                         </span>
                       ) : (
                         <img
-                          src={m.url}
+                          src={resolveAssetUrl(m.url)}
                           alt=""
                           className="w-20 h-20 rounded-lg object-cover border"
                         />

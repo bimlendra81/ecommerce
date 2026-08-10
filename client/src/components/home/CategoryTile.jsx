@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
+import { resolveAssetUrl } from '../../utils/media'
 
 const placeholder = (name) => `https://placehold.co/600x400?text=${encodeURIComponent(name)}`
 
 export default function CategoryTile({ c, className, large, round, meta }) {
-  const img = c.image || placeholder(c.name)
+  const img = resolveAssetUrl(c.image) || placeholder(c.name)
   const metaText = meta || `${c.product_count} item${c.product_count === 1 ? '' : 's'}`
   return (
     <Link

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import MediaSlider from '../MediaSlider'
+import { resolveAssetUrl } from '../../utils/media'
 
 const CART_ICON = (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -300,7 +301,7 @@ function RecCard({ product, variant, onAdd }) {
   const image = product.media?.length ? (
     <MediaSlider media={product.media} fallback={product.image} aspectClass="aspect-square" containerClass={imgWrap} />
   ) : (
-    <img src={product.image} alt={product.name} className={imgWrap} />
+    <img src={resolveAssetUrl(product.image)} alt={product.name} className={imgWrap} />
   )
 
   return (

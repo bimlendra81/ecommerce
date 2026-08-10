@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { resolveAssetUrl } from '../../utils/media'
 
 export default function RailSlider({ items }) {
   const [index, setIndex] = useState(0)
@@ -24,7 +25,7 @@ export default function RailSlider({ items }) {
           }`}
         >
           <img
-            src={it.image}
+            src={resolveAssetUrl(it.image)}
             alt=""
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import client from '../api/adminClient'
 import { validateFields, field } from '../utils/validation'
 import FieldError from '../components/FieldError'
+import { resolveAssetUrl } from '../utils/media'
 
 const emptyForm = {
   title: '',
@@ -121,7 +122,7 @@ export default function AdminSlides() {
           {slides.map((s) => (
             <div key={s.id} className="bg-white rounded-lg shadow overflow-hidden">
               <div className="h-40 bg-gray-100 relative">
-                <img src={s.image} alt={s.title || ''} className="w-full h-full object-cover" />
+                <img src={resolveAssetUrl(s.image)} alt={s.title || ''} className="w-full h-full object-cover" />
                 <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-semibold ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
                   {s.active ? 'Active' : 'Inactive'}
                 </span>

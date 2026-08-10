@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { resolveAssetUrl, resolveMediaItem } from '../utils/media'
 
 function isVideoType(url) {
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)
@@ -16,11 +17,11 @@ export default function MediaSlider({
   objectFit = 'contain',
   zoom = false,
 }) {
-  const items = (media || []).map((m) => ({ type: m.type, url: m.url }))
+  const items = (media || []).map((m) => resolveMediaItem({ type: m.type, url: m.url }))
   const gallery =
     items.length > 0
       ? items
-      : [{ type: 'image', url: fallback || 'https://placehold.co/600x600?text=No+Image' }]
+      : [{ type: 'image', url: resolveAssetUrl(fallback) || 'https://placehold.co/600x600?text=No+Image' }]
 
   const firstVideoIndex = preferVideo ? gallery.findIndex((i) => i.type === 'video' || isVideoType(i.url)) : -1
   const [index, setIndex] = useState(firstVideoIndex > 0 ? firstVideoIndex : 0)

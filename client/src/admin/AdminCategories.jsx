@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import client from '../api/adminClient'
 import { field, useFormErrors } from '../utils/validation'
 import FieldError from '../components/FieldError'
+import { resolveAssetUrl } from '../utils/media'
 
 const emptyForm = { name: '', image: '', featured: false, featured_order: 0 }
 
@@ -143,7 +144,7 @@ export default function AdminCategories() {
             <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="h-36 bg-gray-100 relative">
                 <img
-                  src={c.image || 'https://placehold.co/600x400?text=No+Image'}
+                  src={resolveAssetUrl(c.image) || 'https://placehold.co/600x400?text=No+Image'}
                   alt={c.name}
                   className="w-full h-full object-cover"
                 />
@@ -218,7 +219,7 @@ export default function AdminCategories() {
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Image</label>
                 {(form.image || imageFile) && (
                   <img
-                    src={imageFile ? URL.createObjectURL(imageFile) : form.image}
+                    src={imageFile ? URL.createObjectURL(imageFile) : resolveAssetUrl(form.image)}
                     alt="Category preview"
                     className="h-24 w-full object-cover rounded-lg border mb-2"
                   />

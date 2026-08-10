@@ -4,6 +4,7 @@ import ProductRail from './ProductRail'
 import CategoryCarousel from './CategoryCarousel'
 import TrustBand from './TrustBand'
 import NewsletterStrip from './NewsletterStrip'
+import { resolveAssetUrl } from '../../utils/media'
 
 const placeholder = (name) => `https://placehold.co/600x400?text=${encodeURIComponent(name)}`
 
@@ -75,7 +76,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
                   }`}
                 >
                   {s.image && (
-                    <img src={s.image} alt={s.title || ''} className="w-full h-full object-cover opacity-40" />
+                    <img src={resolveAssetUrl(s.image)} alt={s.title || ''} className="w-full h-full object-cover opacity-40" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black" />
                 </div>
@@ -83,7 +84,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
             })}
           </div>
         ) : (
-          heroImage && <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+          heroImage && <img src={resolveAssetUrl(heroImage)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black" />
 
@@ -181,7 +182,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
       )}
 
       <section className="relative h-[420px] md:h-[520px] overflow-hidden">
-        <img src={bannerImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={resolveAssetUrl(bannerImage)} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
         <div className="relative h-full w-full px-4 md:px-8 flex items-center">
           <div className="max-w-2xl">

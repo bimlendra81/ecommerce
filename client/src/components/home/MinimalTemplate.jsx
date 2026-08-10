@@ -4,6 +4,7 @@ import ProductRail from './ProductRail'
 import CategoryCarousel from './CategoryCarousel'
 import TrustBand from './TrustBand'
 import NewsletterStrip from './NewsletterStrip'
+import { resolveAssetUrl } from '../../utils/media'
 
 const placeholder = (name) => `https://placehold.co/600x400?text=${encodeURIComponent(name)}`
 
@@ -102,13 +103,13 @@ export default function MinimalTemplate({
                     isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   }`}
                 >
-                  <img src={s.image} alt={s.title || ''} className="w-full h-full object-cover" />
+                  <img src={resolveAssetUrl(s.image)} alt={s.title || ''} className="w-full h-full object-cover" />
                 </div>
               )
             })}
           </div>
         ) : (
-          <img src={fallbackImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={resolveAssetUrl(fallbackImage)} alt="" className="absolute inset-0 w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/50" />
 

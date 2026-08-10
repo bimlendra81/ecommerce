@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import client from '../api/adminClient'
+import { resolveAssetUrl } from '../utils/media'
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
@@ -109,7 +110,7 @@ export default function AdminProducts() {
                 <tr key={p.id}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <img src={p.image} alt="" className="w-10 h-10 rounded object-cover" />
+                      <img src={resolveAssetUrl(p.image)} alt="" className="w-10 h-10 rounded object-cover" />
                       <div>
                         <p className="font-medium">{p.name}</p>
                         <p className="text-xs text-gray-500">{p.slug}</p>
