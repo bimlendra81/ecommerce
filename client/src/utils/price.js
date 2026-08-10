@@ -5,6 +5,7 @@ export function saleActive(p) {
 }
 
 export function priceNow(p) {
+  if (p == null) return 0
   return saleActive(p) ? Number(p.sale_price) : Number(p.price)
 }
 
