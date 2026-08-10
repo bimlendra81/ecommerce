@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketplace Home — New Layout Preview</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #111827; -webkit-font-smoothing: antialiased; }
+
+      .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+      /* ---------- Header (context only) ---------- */
+      .header { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px solid #e5e7eb; }
+      .header-inner { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .logo { font-weight: 900; font-size: 20px; letter-spacing: -0.02em; color: #111827; text-decoration: none; }
+      .logo span { color: #2563eb; }
+      .nav { display: flex; gap: 24px; font-size: 14px; font-weight: 500; color: #4b5563; }
+      .nav a { color: inherit; text-decoration: none; }
+      .nav a:hover { color: #2563eb; }
+      .header-actions { display: flex; gap: 16px; font-size: 14px; font-weight: 500; color: #6b7280; }
+
+      /* ---------- Hero ---------- */
+      .hero { position: relative; width: 100%; background: #111827; overflow: hidden; }
+      .hero-viewport { position: relative; height: 420px; }
+      .slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.7s ease; }
+      .slide.active { opacity: 1; pointer-events: auto; }
+      .slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+      .slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.85), rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.2)); }
+      .slide-body { position: absolute; inset: 0; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; color: #fff; }
+      .slide-body .eyebrow { text-transform: uppercase; letter-spacing: 0.25em; font-size: 12px; font-weight: 700; color: #0ea5e9; margin-bottom: 16px; }
+      .slide-body h1 { font-size: 52px; line-height: 1.05; font-weight: 900; max-width: 640px; text-shadow: 0 2px 20px rgba(0,0,0,0.4); }
+      .slide-body .ctas { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn-white { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #111827; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 15px; text-decoration: none; transition: background 0.2s; }
+      .btn-white:hover { background: #0ea5e9; }
+      .btn-ghost { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.5); color: #fff; padding: 14px 32px; border-radius: 999px; font-weight: 600; font-size: 15px; text-decoration: none; transition: background 0.2s; }
+      .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+      .hero-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.85); color: #1f2937; font-size: 22px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+      .hero-arrow:hover { background: #fff; }
+      .hero-arrow.prev { left: 16px; }
+      .hero-arrow.next { right: 16px; }
+      .hero-dots { position: absolute; bottom: 20px; left: 0; right: 0; z-index: 20; display: flex; justify-content: center; gap: 8px; }
+      .hero-dots button { height: 8px; border: none; border-radius: 999px; cursor: pointer; transition: all 0.2s; }
+      .hero-dots button.on { width: 28px; background: #fff; }
+      .hero-dots button.off { width: 8px; background: rgba(255,255,255,0.5); }
+      .hero-dots button.off:hover { background: rgba(255,255,255,0.8); }
+
+      /* ---------- Quick categories ---------- */
+      .quickcats { position: relative; z-index: 10; max-width: 1280px; margin: -48px auto 0; padding: 0 24px; }
+      .quickcats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+      .quickcard { position: relative; display: block; height: 176px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.18); text-decoration: none; }
+      .quickcard img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+      .quickcard:hover img { transform: scale(1.05); }
+      .quickcard::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.1) 55%, transparent); }
+      .quickcard .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; color: #fff; z-index: 1; }
+      .quickcard .cap b { display: block; font-size: 15px; }
+      .quickcard .cap span { font-size: 12px; color: rgba(255,255,255,0.75); }
+
+      /* ---------- Section headers ---------- */
+      .sec { max-width: 1280px; margin: 0 auto; padding: 64px 24px 0; }
+      .sec-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; }
+      .sec-head .sub { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #9ca3af; margin-bottom: 8px; }
+      .sec-head h2 { font-size: 32px; font-weight: 900; letter-spacing: -0.02em; }
+      .sec-head a { font-size: 14px; font-weight: 600; color: #2563eb; text-decoration: none; }
+      .sec-head a:hover { text-decoration: underline; }
+
+      /* ---------- Trust ---------- */
+      .trust { max-width: 1280px; margin: 0 auto; padding: 56px 24px 0; }
+      .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .trust-card { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+      .trust-card .ico { width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+      .trust-card b { display: block; font-size: 15px; }
+      .trust-card span { font-size: 13px; color: #6b7280; }
+
+      /* ---------- Product rails ---------- */
+      .rail { position: relative; }
+      .rail-track { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: none; -ms-overflow-style: none; }
+      .rail-track::-webkit-scrollbar { display: none; }
+      .pcard { flex: 0 0 240px; width: 240px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+      .pcard img { width: 100%; height: 256px; object-fit: cover; display: block; }
+      .pcard .meta { padding: 16px; }
+      .pcard .meta b { display: block; font-size: 14px; font-weight: 600; }
+      .pcard .meta span { font-size: 15px; font-weight: 700; color: #2563eb; }
+      .rail-arrow { position: absolute; top: 45%; transform: translateY(-50%); z-index: 10; width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,0.9); color: #374151; font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+      .rail-arrow:hover { background: #fff; }
+      .rail-arrow.prev { left: 8px; }
+      .rail-arrow.next { right: 8px; }
+
+      /* ---------- Promo banners ---------- */
+      .promos { max-width: 1280px; margin: 0 auto; padding: 64px 24px 0; }
+      .promos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      .promo { position: relative; display: block; height: 256px; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none; }
+      .promo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+      .promo:hover img { transform: scale(1.05); }
+      .promo.a::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(37,99,235,0.95), rgba(37,99,235,0.6) 55%, rgba(14,165,233,0.3)); }
+      .promo.b::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,24,39,0.9), rgba(17,24,39,0.5) 60%, transparent); }
+      .promo .body { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 40px; color: #fff; }
+      .promo .tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; color: rgba(255,255,255,0.8); }
+      .promo h3 { font-size: 28px; font-weight: 900; margin-top: 4px; }
+      .promo p { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+      .promo .btn { margin-top: 16px; align-self: flex-start; background: #fff; color: #111827; font-size: 14px; font-weight: 700; padding: 10px 24px; border-radius: 999px; }
+
+      /* ---------- Category grid ---------- */
+      .catgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+      .catcard { position: relative; display: block; height: 208px; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none; }
+      .catcard img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+      .catcard:hover img { transform: scale(1.05); }
+      .catcard::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.05) 55%, transparent); }
+      .catcard .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; color: #fff; z-index: 1; }
+      .catcard .cap b { display: block; font-size: 16px; font-weight: 700; }
+      .catcard .cap span { font-size: 12px; color: rgba(255,255,255,0.75); }
+
+      /* ---------- Newsletter ---------- */
+      .newsletter { max-width: 1280px; margin: 0 auto; padding: 64px 24px 40px; }
+      .newsletter-box { position: relative; border-radius: 16px; overflow: hidden; background: linear-gradient(to right, #2563eb, #0ea5e9); padding: 48px 32px; text-align: center; color: #fff; }
+      .newsletter-box h2 { font-size: 28px; font-weight: 800; }
+      .newsletter-box p { color: rgba(255,255,255,0.85); margin-top: 8px; }
+      .newsletter-box form { max-width: 420px; margin: 24px auto 0; display: flex; gap: 8px; }
+      .newsletter-box input { flex: 1; border: none; border-radius: 999px; padding: 12px 20px; font-size: 14px; outline: none; }
+      .newsletter-box button { border: none; border-radius: 999px; background: #111827; color: #fff; padding: 12px 24px; font-weight: 600; cursor: pointer; }
+
+      @media (max-width: 1024px) {
+        .quickcats-grid, .catgrid { grid-template-columns: repeat(2, 1fr); }
+        .quickcard { height: 140px; }
+        .promos-grid { grid-template-columns: 1fr; }
+        .promo { height: 220px; }
+        .slide-body h1 { font-size: 42px; }
+      }
+      @media (max-width: 640px) {
+        .nav { display: none; }
+        .hero-viewport { height: 380px; }
+        .slide-body h1 { font-size: 32px; }
+        .trust-grid { grid-template-columns: 1fr; }
+        .sec-head h2 { font-size: 26px; }
+        .quickcats { margin-top: -32px; }
+        .quickcats-grid { gap: 12px; }
+        .quickcard { height: 120px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ================= HEADER (context only) ================= -->
+    <header class="header">
+      <div class="wrap header-inner">
+        <a href="#" class="logo">Shop<span>Hub</span></a>
+        <nav class="nav">
+          <a href="#">Home</a><a href="#">Shop</a><a href="#">About</a><a href="#">Contact</a>
+        </nav>
+        <div class="header-actions"><span>Search</span><span>Cart</span></div>
+      </div>
+    </header>
+
+    <!-- ================= 1. HERO — full-width slider ================= -->
+    <section class="hero">
+      <div class="hero-viewport">
+
+        <div class="slide active">
+          <img src="https://picsum.photos/seed/summer-sale/1800/800" alt="" />
+          <div class="slide-body">
+            <p class="eyebrow">Up to 40% off</p>
+            <h1>Summer Sale</h1>
+            <div class="ctas">
+              <a href="#" class="btn-white">Shop now →</a>
+              <a href="#" class="btn-ghost">Explore</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide">
+          <img src="https://picsum.photos/seed/new-arrivals/1800/800" alt="" />
+          <div class="slide-body">
+            <p class="eyebrow">Fresh drops every week</p>
+            <h1>New Arrivals</h1>
+            <div class="ctas">
+              <a href="#" class="btn-white">Shop now →</a>
+              <a href="#" class="btn-ghost">Explore</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="hero-arrow prev" onclick="goSlide(-1)">‹</button>
+      <button class="hero-arrow next" onclick="goSlide(1)">›</button>
+      <div class="hero-dots">
+        <button class="on" onclick="dot(0)"></button>
+        <button class="off" onclick="dot(1)"></button>
+      </div>
+    </section>
+
+    <!-- ================= 2. QUICK CATEGORIES ================= -->
+    <section class="quickcats">
+      <div class="quickcats-grid">
+        <a href="#" class="quickcard"><img src="https://picsum.photos/seed/electronics/600/400" alt="" /><span class="cap"><b>Electronics</b><span>24 items</span></span></a>
+        <a href="#" class="quickcard"><img src="https://picsum.photos/seed/fashion/600/400" alt="" /><span class="cap"><b>Fashion</b><span>18 items</span></span></a>
+        <a href="#" class="quickcard"><img src="https://picsum.photos/seed/home-living/600/400" alt="" /><span class="cap"><b>Home &amp; Living</b><span>15 items</span></span></a>
+        <a href="#" class="quickcard"><img src="https://picsum.photos/seed/sports/600/400" alt="" /><span class="cap"><b>Sports</b><span>12 items</span></span></a>
+      </div>
+    </section>
+
+    <!-- ================= 3. TRUST BAR ================= -->
+    <section class="trust">
+      <div class="trust-grid">
+        <div class="trust-card"><div class="ico">🚚</div><div><b>Free Shipping</b><span>On orders over $50</span></div></div>
+        <div class="trust-card"><div class="ico">↩️</div><div><b>Easy Returns</b><span>30-day money back</span></div></div>
+        <div class="trust-card"><div class="ico">🔒</div><div><b>Secure Checkout</b><span>100% protected payments</span></div></div>
+      </div>
+    </section>
+
+    <!-- ================= 4. POPULAR PRODUCTS — slider ================= -->
+    <section class="sec">
+      <div class="sec-head">
+        <div><p class="sub">Best sellers our customers love</p><h2>Popular Products</h2></div>
+        <a href="#">View all →</a>
+      </div>
+      <div class="rail">
+        <div class="rail-track" id="rail1">
+          <div class="pcard"><img src="https://picsum.photos/seed/p1/400/500" alt="" /><div class="meta"><b>Wireless Headphones</b><span>$129.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/p2/400/500" alt="" /><div class="meta"><b>Leather Sneakers</b><span>$89.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/p3/400/500" alt="" /><div class="meta"><b>Minimal Watch</b><span>$199.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/p4/400/500" alt="" /><div class="meta"><b>Canvas Backpack</b><span>$64.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/p5/400/500" alt="" /><div class="meta"><b>Ceramic Mug Set</b><span>$29.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/p6/400/500" alt="" /><div class="meta"><b>Desk Lamp</b><span>$45.00</span></div></div>
+        </div>
+        <button class="rail-arrow prev" onclick="scrollRail('rail1', -1)">‹</button>
+        <button class="rail-arrow next" onclick="scrollRail('rail1', 1)">›</button>
+      </div>
+    </section>
+
+    <!-- ================= 5. PROMO BANNERS ================= -->
+    <section class="promos">
+      <div class="promos-grid">
+        <a href="#" class="promo a">
+          <img src="https://picsum.photos/seed/trending/900/600" alt="" />
+          <div class="body"><span class="tag">Limited time</span><h3>Trending picks</h3><p>32 items</p><span class="btn">Shop now</span></div>
+        </a>
+        <a href="#" class="promo b">
+          <img src="https://picsum.photos/seed/featured/900/600" alt="" />
+          <div class="body"><span class="tag">New arrivals</span><h3>Editor's picks</h3><p>18 items</p><span class="btn">Shop now</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================= 6. SHOP BY CATEGORY ================= -->
+    <section class="sec">
+      <div class="sec-head">
+        <div><p class="sub">Explore our collections</p><h2>Shop by Category</h2></div>
+        <a href="#">All categories →</a>
+      </div>
+      <div class="catgrid">
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c1/500/400" alt="" /><span class="cap"><b>Electronics</b><span>24 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c2/500/400" alt="" /><span class="cap"><b>Fashion</b><span>18 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c3/500/400" alt="" /><span class="cap"><b>Home &amp; Living</b><span>15 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c4/500/400" alt="" /><span class="cap"><b>Sports</b><span>12 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c5/500/400" alt="" /><span class="cap"><b>Toys &amp; Games</b><span>9 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c6/500/400" alt="" /><span class="cap"><b>Books</b><span>7 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c7/500/400" alt="" /><span class="cap"><b>Beauty</b><span>11 items</span></span></a>
+        <a href="#" class="catcard"><img src="https://picsum.photos/seed/c8/500/400" alt="" /><span class="cap"><b>Groceries</b><span>21 items</span></span></a>
+      </div>
+    </section>
+
+    <!-- ================= 7. RECOMMENDED ================= -->
+    <section class="sec">
+      <div class="sec-head">
+        <div><p class="sub">Based on your cart and past purchases</p><h2>Recommended for you</h2></div>
+        <a href="#">See all →</a>
+      </div>
+      <div class="rail">
+        <div class="rail-track" id="rail2">
+          <div class="pcard"><img src="https://picsum.photos/seed/r1/400/500" alt="" /><div class="meta"><b>Smart Speaker</b><span>$79.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/r2/400/500" alt="" /><div class="meta"><b>Yoga Mat</b><span>$32.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/r3/400/500" alt="" /><div class="meta"><b>Coffee Grinder</b><span>$58.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/r4/400/500" alt="" /><div class="meta"><b>Denim Jacket</b><span>$95.00</span></div></div>
+          <div class="pcard"><img src="https://picsum.photos/seed/r5/400/500" alt="" /><div class="meta"><b>Aromatherapy Set</b><span>$41.00</span></div></div>
+        </div>
+        <button class="rail-arrow prev" onclick="scrollRail('rail2', -1)">‹</button>
+        <button class="rail-arrow next" onclick="scrollRail('rail2', 1)">›</button>
+      </div>
+    </section>
+
+    <!-- ================= 8. NEWSLETTER ================= -->
+    <section class="newsletter">
+      <div class="newsletter-box">
+        <h2>Stay in the loop</h2>
+        <p>Get exclusive deals and new arrivals straight to your inbox.</p>
+        <form onsubmit="event.preventDefault(); this.style.display='none'; document.getElementById('nl-ok').style.display='block';">
+          <input type="email" required placeholder="Enter your email" />
+          <button type="submit">Subscribe</button>
+        </form>
+        <p id="nl-ok" style="display:none; margin-top:24px; font-weight:500;">Thanks — you're on the list!</p>
+      </div>
+    </section>
+
+    <script>
+      var idx = 0
+      var slides = document.querySelectorAll('.slide')
+      var dots = document.querySelectorAll('.hero-dots button')
+      function render(i) {
+        idx = (i + slides.length) % slides.length
+        slides.forEach(function (s, j) { s.classList.toggle('active', j === idx) })
+        dots.forEach(function (d, j) {
+          d.className = j === idx ? 'on' : 'off'
+        })
+      }
+      function goSlide(d) { render(idx + d) }
+      function dot(i) { render(i) }
+      setInterval(function () { goSlide(1) }, 5000)
+      function scrollRail(id, dir) {
+        document.getElementById(id).scrollBy({ left: dir * 260, behavior: 'smooth' })
+      }
+    </script>
+  </body>
+</html>

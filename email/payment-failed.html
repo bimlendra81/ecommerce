@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Failed + Retry — Email Template</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .preview-bar {
+      padding: 14px 24px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .preview-bar strong { color: #fff; }
+    main { padding: 32px 16px 64px; }
+    .email-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      color: #374151;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .header {
+      padding: 24px 32px;
+      background: #111827;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header .store { font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+    .header .logo { font-size: 12px; color: #9ca3af; }
+    .body { padding: 28px 32px; }
+    h1 { font-size: 20px; margin: 0 0 16px; color: #111827; }
+    p { margin: 0 0 16px; }
+    .error-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #ef4444;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #7f1d1d;
+    }
+    .error-box .reason { font-weight: 700; color: #b91c1c; font-size: 15px; margin-bottom: 6px; }
+    .hold-note {
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin: 16px 0;
+    }
+    .btn-row { margin: 20px 0 4px; }
+    .btn {
+      display: inline-block;
+      background: #111827;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 22px;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .order-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+    .order-line .label { color: #6b7280; }
+    .order-line .value { font-weight: 700; color: #111827; }
+    .footer {
+      padding: 16px 32px;
+      border-top: 1px solid #e5e7eb;
+      color: #9ca3af;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar"><strong>Subject:</strong> Payment failed — order #10234 ⚠️ &nbsp;·&nbsp; <strong>Type:</strong> Payment Failed + Retry (event-driven)</div>
+  <main>
+    <div class="email-wrap">
+      <div class="header">
+        <span class="store">Acme Store</span>
+        <span class="logo">🛍️ Your trusted store</span>
+      </div>
+      <div class="body">
+        <h1>We couldn't process your payment</h1>
+        <p>Hi <strong>Rahul Sharma</strong>,</p>
+        <p>Unfortunately, we were unable to process the payment for your order:</p>
+
+        <div class="order-line">
+          <span class="label">Order #</span>
+          <span class="value">10234</span>
+        </div>
+        <div class="order-line">
+          <span class="label">Amount</span>
+          <span class="value">₹10,292</span>
+        </div>
+
+        <div class="error-box">
+          <div class="reason">⚠️ Your bank declined the transaction</div>
+          <div>Reason: Insufficient funds. Please check with your bank or try another payment method.</div>
+        </div>
+
+        <div class="hold-note">
+          ⏳ Your order will be held for <strong>24 hours</strong>. If payment isn't completed in this time, the order will be cancelled automatically.
+        </div>
+
+        <div class="btn-row">
+          <a class="btn" href="#">Retry Payment</a>
+        </div>
+
+        <p style="font-size:13px; color:#6b7280;">Questions? Contact our support team — we're happy to help.</p>
+      </div>
+      <div class="footer">
+        Acme Store · 123 Market Street, Bengaluru · support@acmestore.com
+      </div>
+    </div>
+  </main>
+</body>
+</html>

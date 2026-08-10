@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --primary-light: #dbeafe;
+  --accent: #0ea5e9;
+  --accent-dark: #0284c7;
+  --header-bg: #ffffff;
+  --header-text: #111827;
+  --body-bg: #ffffff;
+  --font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size: 16px;
+  --footer-bg: #111827;
+  --footer-text: #d1d5db;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-light: var(--primary-light);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-header-bg: var(--header-bg);
+  --color-header-text: var(--header-text);
+  --color-body-bg: var(--body-bg);
+  --color-footer-bg: var(--footer-bg);
+  --color-footer-text: var(--footer-text);
+}
+
+body {
+  background-color: var(--body-bg);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+}
+
+@keyframes cart-popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cart-popup-in {
+  animation: cart-popup-in 0.3s ease-out;
+}
+
+@keyframes cart-popup-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.cart-popup-out {
+  animation: cart-popup-out 0.3s ease-in forwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 22s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+.edge-fade {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent
+  );
+}
+
+.stagger > *:nth-child(odd) {
+  transform: translateY(24px);
+}
+
+.rich-text:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.rich-text h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.rich-text h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.rich-text h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.6rem 0 0.25rem;
+}
+
+.rich-text p {
+  margin: 0.25rem 0;
+}
+
+.rich-text ul {
+  list-style: disc;
+  padding-left: 1.4rem;
+  margin: 0.25rem 0;
+}
+
+.rich-text ol {
+  list-style: decimal;
+  padding-left: 1.4rem;
+  margin: 0.25rem 0;
+}
+
+.rich-text li {
+  margin: 0.15rem 0;
+}
+
+.rich-text blockquote {
+  border-left: 3px solid #d1d5db;
+  padding-left: 0.75rem;
+  color: #4b5563;
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.rich-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.rich-text td {
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.rich-text a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* ── Page Loader ─────────────────────────────────────────── */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--body-bg, #ffffff);
+  animation: loader-fade-in 0.2s ease-out;
+}
+
+.page-loader__spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--primary-light, #dbeafe);
+  border-top-color: var(--primary, #2563eb);
+  animation: loader-spin 0.75s linear infinite;
+}
+
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loader-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

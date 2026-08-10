@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmation — Email Template</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .preview-bar {
+      padding: 14px 24px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .preview-bar strong { color: #fff; }
+    main { padding: 32px 16px 64px; }
+    .email-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      color: #374151;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .header {
+      padding: 24px 32px;
+      background: #111827;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header .store { font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+    .header .logo { font-size: 12px; color: #9ca3af; }
+    .body { padding: 28px 32px; }
+    h1 { font-size: 20px; margin: 0 0 16px; color: #111827; }
+    p { margin: 0 0 16px; }
+    .order-summary {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .order-summary th {
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 12px;
+    }
+    .order-summary td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .order-summary .right { text-align: right; }
+    .total-row td {
+      font-weight: 700;
+      font-size: 16px;
+      color: #111827;
+      border-bottom: none;
+      border-top: 2px solid #111827;
+    }
+    .address-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 12px 0 4px;
+      font-size: 14px;
+    }
+    .address-box .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .btn-row { margin: 20px 0 4px; }
+    .btn {
+      display: inline-block;
+      background: #111827;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 22px;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .btn.secondary { background: #f3f4f6; color: #111827; border: 1px solid #d1d5db; }
+    .eta {
+      background: #eef2ff;
+      color: #4338ca;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-top: 18px;
+    }
+    .footer {
+      padding: 16px 32px;
+      border-top: 1px solid #e5e7eb;
+      color: #9ca3af;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar"><strong>Subject:</strong> Order #10234 confirmed — Acme Store &nbsp;·&nbsp; <strong>Type:</strong> Order Confirmation (event-driven)</div>
+  <main>
+    <div class="email-wrap">
+      <div class="header">
+        <span class="store">Acme Store</span>
+        <span class="logo">🛍️ Your trusted store</span>
+      </div>
+      <div class="body">
+        <h1>Thank you for your order!</h1>
+        <p>Hi <strong>Rahul Sharma</strong>,</p>
+        <p>We've received your order and will start preparing it right away. Here's a summary:</p>
+
+        <table class="order-summary">
+          <thead>
+            <tr>
+              <th>Qty</th>
+              <th>Item</th>
+              <th class="right">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2</td>
+              <td>Wireless Headphones Pro</td>
+              <td class="right">₹7,998</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>USB-C Fast Cable (1m)</td>
+              <td class="right">₹499</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>Screen Protector Glass</td>
+              <td class="right">₹649</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>Subtotal</td>
+              <td class="right">₹9,146</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>Shipping</td>
+              <td class="right">₹99</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>Tax (18%)</td>
+              <td class="right">₹1,547</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>Discount</td>
+              <td class="right">−₹500</td>
+            </tr>
+            <tr class="total-row">
+              <td></td>
+              <td>Total</td>
+              <td class="right">₹10,292</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="address-box">
+          <div class="label">Shipping to</div>
+          Rahul Sharma<br />
+          221B, Palm Avenue, Indiranagar<br />
+          Bengaluru, Karnataka 560038, IN
+        </div>
+
+        <div class="btn-row">
+          <a class="btn" href="#">View Order</a>
+          <a class="btn secondary" href="#">Track Order</a>
+        </div>
+
+        <div class="eta">🚚 Estimated delivery: <strong>Aug 12 – Aug 16, 2026</strong></div>
+      </div>
+      <div class="footer">
+        If you didn't place this order, please contact us at support@acmestore.com.<br />
+        Acme Store · 123 Market Street, Bengaluru
+      </div>
+    </div>
+  </main>
+</body>
+</html>

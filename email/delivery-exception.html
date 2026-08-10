@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delivery Exception / Delay — Email Template</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    .preview-bar {
+      padding: 14px 24px;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .preview-bar strong { color: #fff; }
+    main { padding: 32px 16px 64px; }
+    .email-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      color: #374151;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .header {
+      padding: 24px 32px;
+      background: #111827;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header .store { font-size: 18px; font-weight: 700; letter-spacing: 0.02em; }
+    .header .logo { font-size: 12px; color: #9ca3af; }
+    .body { padding: 28px 32px; }
+    h1 { font-size: 20px; margin: 0 0 16px; color: #111827; }
+    p { margin: 0 0 16px; }
+    .status-box {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-left: 4px solid #f97316;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #7c2d12;
+    }
+    .status-box .reason { font-weight: 700; color: #9a3412; font-size: 15px; margin-bottom: 6px; }
+    .status-box .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      color: #7c2d12;
+    }
+    .status-box .meta-row .value { font-weight: 700; }
+    .btn-row { margin: 20px 0 4px; }
+    .btn {
+      display: inline-block;
+      background: #111827;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 22px;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .btn.secondary { background: #f3f4f6; color: #111827; border: 1px solid #d1d5db; }
+    .footer {
+      padding: 16px 32px;
+      border-top: 1px solid #e5e7eb;
+      color: #9ca3af;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar"><strong>Subject:</strong> Update on your order #10234 — delayed &nbsp;·&nbsp; <strong>Type:</strong> Delivery Exception / Delay (cron poll)</div>
+  <main>
+    <div class="email-wrap">
+      <div class="header">
+        <span class="store">Acme Store</span>
+        <span class="logo">🛍️ Your trusted store</span>
+      </div>
+      <div class="body">
+        <h1>An update on your delivery</h1>
+        <p>Hi <strong>Rahul Sharma</strong>,</p>
+        <p>We wanted to let you know about a delay with your order <strong>#10234</strong>.</p>
+
+        <div class="status-box">
+          <div class="reason">⚠️ Delivery attempted — recipient not available</div>
+          <div class="meta-row">
+            <span>Carrier</span>
+            <span class="value">Delhivery</span>
+          </div>
+          <div class="meta-row">
+            <span>Tracking</span>
+            <span class="value">DLVRNX2026A10234</span>
+          </div>
+          <div class="meta-row">
+            <span>New estimated delivery</span>
+            <span class="value">Aug 16, 2026</span>
+          </div>
+        </div>
+
+        <p>We're sorry for the inconvenience. Your package is safe with the courier and will be retried shortly. The carrier may also leave a missed-delivery note with pickup instructions.</p>
+
+        <div class="btn-row">
+          <a class="btn" href="#">Track Package</a>
+          <a class="btn secondary" href="#">Contact Support</a>
+        </div>
+      </div>
+      <div class="footer">
+        Need help? support@acmestore.com<br />
+        Acme Store · 123 Market Street, Bengaluru
+      </div>
+    </div>
+  </main>
+</body>
+</html>

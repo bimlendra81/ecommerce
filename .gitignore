@@ -1,0 +1,12 @@
+node_modules/
+.env
+dist/
+*.log
+.claude
+.gitnexus
+html
+deepseekfree.json
+models.jaon
+AGENTS.md
+CLAUDE.md
+EMAIL_NOTIFICATIONS.md
