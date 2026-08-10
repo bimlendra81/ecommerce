@@ -50,7 +50,7 @@ async function getRecommendedForUser(userId) {
   if (categoryIds.length === 0) return [];
 
   const [candidates] = await pool.query(
-    `SELECT DISTINCT p.id
+    `SELECT p.id
      FROM products p
      WHERE p.category_id IN (?)
        AND p.active = 1 AND p.deleted_at IS NULL
