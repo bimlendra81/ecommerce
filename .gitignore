@@ -1,12 +1,29 @@
 node_modules/
 # .env
+
+# dependencies
+node_modules/
+
+# build output
 dist/
+build/
+
+# logs
 *.log
-.claude
-.gitnexus
+npm-debug.log*
+
+# editor / OS
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+
 html
+email
 deepseekfree.json
-models.jaon
-AGENTS.md
-CLAUDE.md
-EMAIL_NOTIFICATIONS.md
+models.json
+
+# docs / planning / memory (keep only README.md and rule files)
+*.md
+!README.md
