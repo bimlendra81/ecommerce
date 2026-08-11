@@ -1,6 +1,75 @@
 import { pool } from '../config/db.js';
 import { getPaymentAdapter, getPublicPaymentConfig } from '../services/payment/index.js';
 import { createShippingLabelAfterPayment } from '../services/shipping/label.js';
+import { sendMail } from '../services/email.js';
+import { buildPaymentReceiptEmail, buildPaymentFailedEmail, buildAdminPaymentAlertEmail } from '../services/emailTemplates.js';
+import { getCachedSettings } from '../utils/settingsCache.js';
+
+async function sendPaymentNotificationEmails(orderId, isSuccess, errorReason = null) {
+  try {
+    const settings = await getCachedSettings();
+    const [orders] = await pool.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    if (orders.length === 0) return;
+    const order = orders[0];
+
+    const [users] = await pool.query('SELECT email, name FROM users WHERE id = ?', [order.user_id]);
+    if (users.length === 0 || !users[0].email) return;
+    const customerEmail = users[0].email;
+    const customerName = users[0].name || 'Customer';
+
+    const [payments] = await pool.query('SELECT * FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1', [orderId]);
+    const payment = payments[0] || {};
+
+    const storeName = settings.site_title || settings.store_name || 'Acme Store';
+
+    if (isSuccess) {
+      if (String(settings.email_payment_receipt ?? '1') === '1') {
+        const { subject, title, bodyHtml } = buildPaymentReceiptEmail({
+          store_name: storeName,
+          customer_name: customerName,
+          order,
+          payment,
+        });
+        const sent = await sendMail({ to: customerEmail, subject, title, bodyHtml });
+        await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
+          orderId, 'payment_receipt', customerEmail, subject, sent ? 'sent' : 'failed'
+        ]);
+      }
+
+      if (String(settings.email_admin_payment_alert ?? '1') === '1') {
+        const adminEmail = settings.contact_email || settings.admin_email || process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+          const { subject, title, bodyHtml } = buildAdminPaymentAlertEmail({
+            store_name: storeName,
+            customer_name: customerName,
+            email: customerEmail,
+            order,
+            payment,
+          });
+          const sent = await sendMail({ to: adminEmail, subject, title, bodyHtml });
+          await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
+            orderId, 'admin_payment_alert', adminEmail, subject, sent ? 'sent' : 'failed'
+          ]);
+        }
+      }
+    } else {
+      if (String(settings.email_payment_failed ?? '1') === '1') {
+        const { subject, title, bodyHtml } = buildPaymentFailedEmail({
+          store_name: storeName,
+          customer_name: customerName,
+          order,
+          failure_reason: errorReason,
+        });
+        const sent = await sendMail({ to: customerEmail, subject, title, bodyHtml });
+        await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
+          orderId, 'payment_failed', customerEmail, subject, sent ? 'sent' : 'failed'
+        ]);
+      }
+    }
+  } catch (err) {
+    console.error('[paymentController] Email trigger error:', err.message);
+  }
+}
 
 export async function paymentConfig(req, res, next) {
   try {
@@ -89,11 +158,17 @@ export async function verifyPayment(req, res, next) {
       return res.status(400).json({ message: 'Payment gateway is not configured' });
     }
 
-    await adapter.verify(req.body);
-    await markPaid(order.id, gateway);
-    // AFTER payment success (server-side): create the shipping label.
-    await createShippingLabelAfterPayment(order.id);
-    res.json({ message: 'Payment verified', order_id: order.id });
+    try {
+      await adapter.verify(req.body);
+      await markPaid(order.id, gateway);
+      // AFTER payment success (server-side): create the shipping label.
+      await createShippingLabelAfterPayment(order.id);
+      sendPaymentNotificationEmails(order.id, true);
+      res.json({ message: 'Payment verified', order_id: order.id });
+    } catch (verifyErr) {
+      sendPaymentNotificationEmails(order.id, false, verifyErr.message);
+      throw verifyErr;
+    }
   } catch (err) {
     next(err);
   }
@@ -123,6 +198,7 @@ export async function testConfirm(req, res, next) {
     await pool.query("UPDATE orders SET status = 'paid' WHERE id = ?", [orderId]);
     // Test mode: still create the label for the selected Shippo rate.
     await createShippingLabelAfterPayment(orderId);
+    sendPaymentNotificationEmails(orderId, true);
 
     res.json({ message: 'Order placed (test mode)', order_id: orderId });
   } catch (err) {
@@ -150,6 +226,7 @@ export async function stripeWebhook(req, res, next) {
         ]);
         // Server-side payment confirmed: create the shipping label now.
         await createShippingLabelAfterPayment(rows[0].order_id);
+        sendPaymentNotificationEmails(rows[0].order_id, true);
       }
     }
 

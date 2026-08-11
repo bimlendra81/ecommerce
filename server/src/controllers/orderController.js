@@ -190,7 +190,33 @@ export async function createOrder(req, res, next) {
     await conn.commit();
 
     invalidateStorefront();
-    res.status(201).json({ order: await getOrderById(orderId, req.user.id, conn) });
+    const createdOrder = await getOrderById(orderId, req.user.id, conn);
+
+    // Trigger Order Confirmation Email
+    try {
+      const emailSettings = await getCachedSettings();
+      if (String(emailSettings.email_order_confirmation ?? '1') === '1') {
+        const [uRows] = await pool.query('SELECT email, name FROM users WHERE id = ?', [req.user.id]);
+        if (uRows.length > 0 && uRows[0].email) {
+          const customerEmail = uRows[0].email;
+          const customerName = uRows[0].name || address.full_name || 'Customer';
+          const { subject, title, bodyHtml } = buildOrderConfirmationEmail({
+            store_name: emailSettings.site_title || emailSettings.store_name || 'Acme Store',
+            customer_name: customerName,
+            order: createdOrder,
+          });
+          const sent = await sendMail({ to: customerEmail, subject, title, bodyHtml });
+          await pool.query(
+            'INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)',
+            [orderId, 'order_confirmation', customerEmail, subject, sent ? 'sent' : 'failed']
+          );
+        }
+      }
+    } catch (mailErr) {
+      console.error('[orderController] Order confirmation email error:', mailErr.message);
+    }
+
+    res.status(201).json({ order: createdOrder });
   } catch (err) {
     await conn.rollback();
     next(err);

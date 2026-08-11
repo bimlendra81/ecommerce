@@ -438,6 +438,44 @@ async function migrate() {
   );
   console.log('[migrate] shippo live-rate columns + settings ready');
 
+  // ---- Email Notifications table & settings ----
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS email_logs (
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      order_id INT UNSIGNED NULL,
+      type VARCHAR(50) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      status ENUM('sent', 'failed') NOT NULL DEFAULT 'sent',
+      sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_email_logs_order FOREIGN KEY (order_id)
+        REFERENCES orders(id) ON DELETE CASCADE,
+      INDEX idx_email_logs_order (order_id)
+    ) ENGINE=InnoDB
+  `);
+  console.log('[migrate] table email_logs ready');
+
+  const emailSettings = [
+    ['email_order_placed', '1'],
+    ['email_order_shipped', '1'],
+    ['email_out_for_delivery', '1'],
+    ['email_order_delivered', '1'],
+    ['email_order_cancelled', '1'],
+    ['email_order_refunded', '1'],
+    ['email_payment_failed', '1'],
+    ['email_admin_order_notification', '1'],
+    ['admin_notification_email', 'admin@example.com'],
+  ];
+
+  for (const [name, val] of emailSettings) {
+    await pool.query(
+      'INSERT INTO settings (name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE name = name',
+      [name, val]
+    );
+  }
+  console.log('[migrate] email notification settings ready');
+
   await pool.end();
   console.log('[migrate] done');
 }

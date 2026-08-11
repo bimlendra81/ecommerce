@@ -30,7 +30,7 @@ async function loadSmtpSettings() {
   };
 }
 
-function layout(title, bodyHtml) {
+export function layout(title, bodyHtml) {
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;font-family:Segoe UI,Arial,sans-serif;background:#f4f4f5;">

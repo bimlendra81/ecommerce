@@ -29,6 +29,7 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "mysql2": "^3.23.2",
+    "node-cron": "^4.6.0",
     "nodemailer": "^9.0.4",
     "razorpay": "^2.9.8",
     "stripe": "^22.4.0"

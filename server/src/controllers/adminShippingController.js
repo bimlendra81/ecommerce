@@ -201,6 +201,30 @@ export async function createOrderShipment(req, res, next) {
       );
     }
 
+    // Trigger Shipment Created Email
+    try {
+      const emailSettings = await getCachedSettings();
+      if (String(emailSettings.email_shipment_created ?? '1') === '1' && order.user_email) {
+        const { subject, title, bodyHtml } = buildShipmentCreatedEmail({
+          store_name: emailSettings.site_title || emailSettings.store_name || 'Acme Store',
+          customer_name: order.user_name || 'Customer',
+          order,
+          shipment: {
+            carrier: result.carrier,
+            tracking_number: result.tracking_number,
+            tracking_url: result.tracking_url,
+            estimated_delivery: info.estimated_delivery,
+          },
+        });
+        const sent = await sendMail({ to: order.user_email, subject, title, bodyHtml });
+        await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
+          orderId, 'shipment_created', order.user_email, subject, sent ? 'sent' : 'failed'
+        ]);
+      }
+    } catch (mailErr) {
+      console.error('[adminShippingController] Shipment created email error:', mailErr.message);
+    }
+
     res.json({ message: 'Shipment created', result });
   } catch (err) {
     next(err);

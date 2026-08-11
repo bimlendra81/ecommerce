@@ -667,6 +667,29 @@ export async function refundOrder(req, res, next) {
     }
 
     await pool.query('UPDATE payments SET refund_status = ? WHERE id = ?', ['refunded', payment.id]);
+
+    try {
+      const settings = await getCachedSettings();
+      if (String(settings.email_order_refunded ?? '1') === '1') {
+        const [fullOrders] = await pool.query('SELECT o.*, u.email AS user_email, u.name AS user_name FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = ?', [id]);
+        if (fullOrders.length > 0 && fullOrders[0].user_email) {
+          const order = fullOrders[0];
+          const { subject, title, bodyHtml } = buildOrderRefundedEmail({
+            store_name: settings.site_title || settings.store_name || 'Acme Store',
+            customer_name: order.user_name || 'Customer',
+            order,
+            payment,
+          });
+          const sent = await sendMail({ to: order.user_email, subject, title, bodyHtml });
+          await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
+            id, 'order_refunded', order.user_email, subject, sent ? 'sent' : 'failed'
+          ]);
+        }
+      }
+    } catch (mailErr) {
+      console.error('[adminController] Refund email error:', mailErr.message);
+    }
+
     res.json({ message: `Refunded ${Number(payment.amount).toFixed(2)}` });
   } catch (err) {
     next(err);
