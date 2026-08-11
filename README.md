@@ -162,10 +162,3 @@ npm run lint                 # oxlint
 npm run build                # production build
 ```
 
-## Related Docs
-
-- `plan.md` — original project plan
-- `payment-gateway-plan.md` — payment architecture
-- `SHIPPING-MODULE.md`, `SHIPPING-LIVE-RATES.md` — shipping / live-rate setup
-- `EMAIL-NOTIFICATIONS.md` — email templates and triggers
-- `progress.md` — implementation status
