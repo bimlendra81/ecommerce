@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import MediaSlider from '../MediaSlider'
 import FieldError from '../FieldError'
+import { loadRazorpayScript } from '../../utils/razorpay'
 
 const INPUT_CLASSES = {
   marketplace:
@@ -356,6 +357,7 @@ function ItemsSection({ o }) {
 function PaymentProgress({ o }) {
   const v = o.variant
   const payment = o.stripePayment || o.razorpayPayment
+  if (!payment?.order) return null
   const order = payment.order
   const items = order.items || []
   const wrap =
@@ -503,57 +505,76 @@ function RazorpayInlineForm({ o }) {
   const [card, setCard] = useState({ name: '', number: '', expiry: '', cvv: '' })
   const [bank, setBank] = useState('')
   const readyRef = useRef(false)
+  const handledRef = useRef(false)
 
   useEffect(() => {
-    if (!window.Razorpay) return
-    const instance = new window.Razorpay({
-      key: payment.key_id,
-      image: o.settings?.site_logo || undefined,
-    })
-    setRzp(instance)
-
-    const applyMethods = (methods) => {
-      readyRef.current = true
-      setEnabled(methods)
-    }
+    if (!payment?.key_id || !payment?.razorpay_order_id) return
+    let cancelled = false
+    let instance = null
 
     const timer = setTimeout(() => {
       if (!readyRef.current) {
-        applyMethods(FALLBACK_RAZORPAY_METHODS)
+        readyRef.current = true
+        setEnabled(FALLBACK_RAZORPAY_METHODS)
         setBanks(FALLBACK_RAZORPAY_BANKS)
         setUsedFallback(true)
       }
     }, 5000)
 
-    instance.once('ready', (response) => {
-      clearTimeout(timer)
-      applyMethods(response.methods)
-      setBanks(instance.methods?.netbanking || [])
-    })
+    async function init() {
+      if (!window.Razorpay) await loadRazorpayScript()
+      if (cancelled || !window.Razorpay) return
+      instance = new window.Razorpay({
+        key: payment.key_id,
+        image: o.settings?.site_logo || undefined,
+      })
+      setRzp(instance)
 
-    instance.on('payment.success', async (resp) => {
-      setError('')
-      setPaying(true)
-      try {
-        await o.confirmRazorpayPayment(resp)
-      } catch (err) {
-        setError(err.response?.data?.message || 'Payment could not be verified. Please try again.')
+      instance.once('ready', (response) => {
+        clearTimeout(timer)
+        readyRef.current = true
+        setEnabled(response.methods)
+        setBanks(instance?.methods?.netbanking || [])
+      })
+
+      instance.on('payment.success', async (resp) => {
+        if (handledRef.current) return
+        handledRef.current = true
+        setError('')
+        setPaying(true)
+        try {
+          await o.confirmRazorpayPayment(resp)
+        } catch (err) {
+          handledRef.current = false
+          setError(err.response?.data?.message || 'Payment could not be verified. Please try again.')
+          setPaying(false)
+        }
+      })
+
+      instance.on('payment.error', (resp) => {
+        handledRef.current = false
+        setError(resp?.error?.description || 'Payment failed. Please try again.')
         setPaying(false)
-      }
-    })
-
-    instance.on('payment.error', (resp) => {
-      setError(resp?.error?.description || 'Payment failed. Please try again.')
-      setPaying(false)
-    })
+      })
+    }
+    init()
 
     return () => {
+      cancelled = true
       clearTimeout(timer)
-      instance.off?.('payment.success')
-      instance.off?.('payment.error')
+      instance?.off?.('payment.success')
+      instance?.off?.('payment.error')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  if (!payment?.key_id || !payment?.razorpay_order_id) {
+    return (
+      <div className="border-t border-gray-100 pt-4 mt-2">
+        <p className="text-xs text-red-600">Payment could not be initialized. Please try placing your order again.</p>
+      </div>
+    )
+  }
 
   const tabs = [
     { id: 'card', label: 'Cards', visible: enabled ? !!enabled.card : true },
@@ -578,20 +599,27 @@ function RazorpayInlineForm({ o }) {
 
   function pay(e) {
     e.preventDefault()
-    if (!rzp) return
+    if (!rzp || paying) return
     setError('')
+    const addr = o.addresses?.find((a) => String(a.id) === o.addressId)
+    const contact = o.user?.phone || addr?.phone || ''
+    if (!o.user?.email || !contact) {
+      setError('Please add a contact phone and email to your account before paying.')
+      return
+    }
     const base = {
       amount: Math.round(Number(payment.amount) * 100),
       currency: payment.currency || 'INR',
-      email: o.user?.email || '',
-      contact: o.user?.phone || '',
+      email: o.user.email,
+      contact,
       order_id: payment.razorpay_order_id,
     }
     let data
     if (activeTab === 'card') {
       const expiry = parseExpiry(card.expiry)
-      if (!card.name.trim() || !card.number.trim() || !card.cvv.trim() || !expiry) {
-        setError('Please fill in all card details')
+      const month = expiry ? Number(expiry.month) : 0
+      if (!card.name.trim() || !card.number.trim() || !card.cvv.trim() || !expiry || month < 1 || month > 12) {
+        setError('Please fill in all card details correctly')
         return
       }
       data = {

@@ -23,12 +23,40 @@ import {
   EditorialCheckoutLayout,
 } from '../components/checkout/CheckoutLayouts'
 import client from '../api/client'
+import { loadRazorpayScript } from '../utils/razorpay'
 import { field, useFormErrors } from '../utils/validation'
 
 const CHECKOUT_LAYOUTS = {
   marketplace: MarketplaceCheckoutLayout,
   minimal: MinimalCheckoutLayout,
   editorial: EditorialCheckoutLayout,
+}
+
+const PENDING_PAYMENT_KEY = 'ecom_checkout_pending'
+
+function readPendingPayment() {
+  try {
+    const raw = sessionStorage.getItem(PENDING_PAYMENT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function writePendingPayment(payload) {
+  try {
+    sessionStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify(payload))
+  } catch {
+    // sessionStorage unavailable (e.g. private mode) — stay in-memory only
+  }
+}
+
+function clearPendingPayment() {
+  try {
+    sessionStorage.removeItem(PENDING_PAYMENT_KEY)
+  } catch {
+    // ignore
+  }
 }
 
 const emptyAddress = {
@@ -40,21 +68,6 @@ const emptyAddress = {
   state: '',
   postal_code: '',
   country: 'IN',
-}
-
-let razorpayScriptPromise = null
-
-function loadRazorpayScript() {
-  if (window.Razorpay) return Promise.resolve()
-  if (!razorpayScriptPromise) {
-    razorpayScriptPromise = new Promise((resolve) => {
-      const s = document.createElement('script')
-      s.src = 'https://checkout.razorpay.com/v1/razorpay.js'
-      s.onload = () => resolve()
-      document.body.appendChild(s)
-    })
-  }
-  return razorpayScriptPromise
 }
 
 export default function Checkout() {
@@ -86,9 +99,19 @@ export default function Checkout() {
     clear: clearNewAddressError,
     reset: resetNewAddressErrors,
   } = useFormErrors()
-  const [stripePayment, setStripePayment] = useState(null)
-  const [stripePromise, setStripePromise] = useState(null)
-  const [razorpayPayment, setRazorpayPayment] = useState(null)
+  const [stripePayment, setStripePayment] = useState(() => {
+    const p = readPendingPayment()
+    if (p?.gateway !== 'stripe') return null
+    return { clientSecret: p.clientSecret, intentId: p.intentId, orderId: p.orderId, order: p.order }
+  })
+  const [stripePromise, setStripePromise] = useState(() => {
+    const p = readPendingPayment()
+    return p?.gateway === 'stripe' && p.publishableKey ? loadStripe(p.publishableKey) : null
+  })
+  const [razorpayPayment, setRazorpayPayment] = useState(() => {
+    const p = readPendingPayment()
+    return p?.gateway === 'razorpay' ? { order: p.order, payment: p.payment } : null
+  })
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState(null)
   const [couponError, setCouponError] = useState('')
@@ -266,23 +289,27 @@ export default function Checkout() {
       }
 
       if (pay.gateway === 'stripe') {
-        setStripePayment({
+        const stripeState = {
           clientSecret: pay.client_secret,
           intentId: pay.intent_id,
           orderId: pay.order_id,
           order: data.order,
-        })
+        }
+        setStripePayment(stripeState)
         setStripePromise(loadStripe(pay.publishable_key))
+        writePendingPayment({ gateway: 'stripe', ...stripeState, publishableKey: pay.publishable_key })
         setPlacing(false)
         return
       }
 
       if (pay.gateway === 'razorpay') {
         await loadRazorpayScript()
-        setRazorpayPayment({
+        const rzpState = {
           order: data.order,
           payment: pay,
-        })
+        }
+        setRazorpayPayment(rzpState)
+        writePendingPayment({ gateway: 'razorpay', ...rzpState })
         setPlacing(false)
         return
       }
@@ -297,12 +324,14 @@ export default function Checkout() {
       order_id: stripePayment.orderId,
       payment_intent_id: stripePayment.intentId,
     })
+    clearPendingPayment()
     navigate('/orders', { state: { success: true, orderId: stripePayment.orderId } })
   }
 
   function cancelStripePayment() {
     setStripePayment(null)
     setStripePromise(null)
+    clearPendingPayment()
     setPlacing(false)
     navigate('/orders')
   }
@@ -314,11 +343,13 @@ export default function Checkout() {
       razorpay_order_id: response.razorpay_order_id,
       razorpay_signature: response.razorpay_signature,
     })
+    clearPendingPayment()
     navigate('/orders', { state: { success: true, orderId: razorpayPayment.order.id } })
   }
 
   function cancelRazorpayPayment() {
     setRazorpayPayment(null)
+    clearPendingPayment()
     setPlacing(false)
     navigate('/orders')
   }
