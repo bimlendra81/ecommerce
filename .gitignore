@@ -17,6 +17,7 @@ npm-debug.log*
 .claude/
 .DS_Store
 Thumbs.db
+opencode.json
 
 html
 email

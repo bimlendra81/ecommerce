@@ -1,5 +1,23 @@
 export const BUILTIN_TEMPLATES = [
   {
+    id: 'premium',
+    name: 'Modern Premium',
+    description: 'Warm off-white canvas with ink black, gold accents, and editorial spacing',
+    headerBg: '#ffffff',
+    headerText: '#161616',
+    primary: '#161616',
+    primaryDark: '#2e2e2e',
+    primarySoft: '#f3f3ef',
+    primaryLight: '#e8e8e3',
+    accent: '#c9a227',
+    accentDark: '#a8871f',
+    bodyBg: '#fafaf8',
+    fontFamily: 'Manrope, Inter, system-ui, sans-serif',
+    fontSize: '16',
+    footerBg: '#161616',
+    footerText: '#cfcfc9',
+  },
+  {
     id: 'amazon',
     name: 'Amazon',
     description: 'Dark navy header with warm orange accents',
@@ -111,6 +129,7 @@ export const BUILTIN_TEMPLATES = [
 
 export const FONT_FAMILIES = [
   { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
+  { label: 'Manrope', value: 'Manrope, Inter, system-ui, sans-serif' },
   { label: 'Poppins', value: 'Poppins, system-ui, sans-serif' },
   { label: 'Roboto', value: 'Roboto, system-ui, sans-serif' },
   { label: 'Open Sans', value: '"Open Sans", system-ui, sans-serif' },
@@ -122,7 +141,7 @@ export const FONT_FAMILIES = [
 
 export function defaultThemeSetting() {
   return {
-    selected: 'ocean',
+    selected: 'premium',
     primary: '',
     accent: '',
     templates: BUILTIN_TEMPLATES.map((t) => ({ ...t })),

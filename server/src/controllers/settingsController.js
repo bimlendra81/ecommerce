@@ -38,7 +38,7 @@ const DEFAULTS = {
     { icon: '🔒', title: 'Secure Payment', text: '100% protected checkout' },
     { icon: '🎧', title: '24/7 Support', text: 'We are here to help' },
   ]),
-  theme: JSON.stringify({ selected: 'ocean', primary: '', accent: '' }),
+  theme: JSON.stringify({ selected: 'premium', primary: '', accent: '' }),
   home_template: 'marketplace',
   facebook_url: '',
   instagram_url: '',
@@ -111,9 +111,9 @@ async function upsert(name, value) {
 
 export async function getPublicSettings(req, res, next) {
   try {
+    res.setHeader('Cache-Control', 'no-store');
     const cached = get('settings:public');
     if (cached) {
-      res.setHeader('Cache-Control', `public, max-age=${PUBLIC_TTL_MS / 1000}`);
       return res.json(cached);
     }
     const all = await getAll();
@@ -123,7 +123,6 @@ export async function getPublicSettings(req, res, next) {
     }
     const payload = { settings };
     set('settings:public', payload, PUBLIC_TTL_MS);
-    res.setHeader('Cache-Control', `public, max-age=${PUBLIC_TTL_MS / 1000}`);
     res.json(payload);
   } catch (err) {
     next(err);

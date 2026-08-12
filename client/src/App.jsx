@@ -8,6 +8,7 @@ import { fetchWishlist, clearWishlist } from './features/wishlistSlice'
 import { fetchSettings, selectSettings, selectSettingsLoaded } from './features/settingsSlice'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import FloatingCart from './components/FloatingCart'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
 import ProductDetail from './pages/ProductDetail'
@@ -215,7 +216,12 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!location.pathname.startsWith('/admin') && <Footer />}
+      {!location.pathname.startsWith('/admin') && (
+        <>
+          <Footer />
+          <FloatingCart />
+        </>
+      )}
     </>
   )
 }

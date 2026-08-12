@@ -1,9 +1,9 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
 import client from '../api/client'
 
 export const fetchSettings = createAsyncThunk('settings/fetchSettings', async (_, { rejectWithValue }) => {
   try {
-    const { data } = await client.get('/settings')
+    const { data } = await client.get('/settings', { params: { _: Date.now() }, cache: 'no-store' })
     return data.settings
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Failed to load settings')
@@ -22,7 +22,7 @@ const initialState = {
       { icon: '🔒', title: 'Secure Payment', text: '100% protected checkout' },
       { icon: '🎧', title: '24/7 Support', text: 'We are here to help' },
     ]),
-    theme: JSON.stringify({ selected: 'ocean', primary: '', accent: '' }),
+    theme: JSON.stringify({ selected: 'premium', primary: '', accent: '' }),
     home_template: 'marketplace',
     facebook_url: '',
     instagram_url: '',
@@ -59,13 +59,16 @@ const settingsSlice = createSlice({
 export const selectSettings = (state) => state.settings.settings
 export const selectSettingsLoading = (state) => state.settings.isLoading
 export const selectSettingsLoaded = (state) => state.settings.isLoaded
-export const selectHomeFeatures = (state) => {
-  try {
-    const parsed = JSON.parse(state.settings.settings.home_features || '[]')
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
+export const selectHomeFeatures = createSelector(
+  (state) => state.settings.settings.home_features,
+  (raw) => {
+    try {
+      const parsed = JSON.parse(raw || '[]')
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
   }
-}
+)
 
 export default settingsSlice.reducer

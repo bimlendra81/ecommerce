@@ -45,6 +45,7 @@ const initialState = {
   isLoading: false,
   error: null,
   toast: null,
+  panelOpen: false,
 }
 
 const cartSlice = createSlice({
@@ -62,6 +63,13 @@ const cartSlice = createSlice({
     },
     closeCartToast(state) {
       state.toast = null
+    },
+    openCartPanel(state) {
+      state.toast = null
+      state.panelOpen = true
+    },
+    closeCartPanel(state) {
+      state.panelOpen = false
     },
   },
   extraReducers: (builder) => {
@@ -108,7 +116,8 @@ const cartSlice = createSlice({
   },
 })
 
-export const { setCart, clearCart, openCartToast, closeCartToast } = cartSlice.actions
+export const { setCart, clearCart, openCartToast, closeCartToast, openCartPanel, closeCartPanel } =
+  cartSlice.actions
 
 export const selectCartItems = (state) => state.cart.items
 export const selectCartCount = (state) => state.cart.items.reduce((sum, i) => sum + i.quantity, 0)
@@ -116,5 +125,6 @@ export const selectCartTotal = (state) =>
   state.cart.items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0)
 export const selectCartLoading = (state) => state.cart.isLoading
 export const selectCartToast = (state) => state.cart.toast
+export const selectCartPanelOpen = (state) => state.cart.panelOpen
 
 export default cartSlice.reducer

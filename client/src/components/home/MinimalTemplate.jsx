@@ -19,15 +19,15 @@ function SectionHeader({ index, label, title, link }) {
   return (
     <div className="flex items-end justify-between mb-10">
       <div>
-        <p className="uppercase tracking-[0.25em] text-xs text-gray-400 mb-2">
+        <p className="uppercase tracking-[0.25em] text-xs text-accent font-bold mb-2">
           {index} — {label}
         </p>
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{title}</h2>
+        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">{title}</h2>
       </div>
       {link && (
         <Link
           to={link.to}
-          className="text-sm font-medium text-gray-500 hover:text-gray-900 border-b border-gray-200 pb-0.5 shrink-0"
+          className="text-sm font-medium text-gray-500 hover:text-primary border-b border-primary-light pb-0.5 shrink-0"
         >
           {link.label}
         </Link>
@@ -59,32 +59,6 @@ export default function MinimalTemplate({
   const [headlineTop, headlineBottom] = splitHeadline(active?.title || settings.site_title || 'Beautiful things')
   const fallbackImage = (categories.find((c) => c.image) || {}).image || placeholder('hero')
 
-  const splitItems = []
-  categories
-    .filter((c) => c.image)
-    .slice(0, 3)
-    .forEach((c) =>
-      splitItems.push({
-        image: c.image,
-        eyebrow: c === categories.filter((x) => x.image)[0] ? 'Featured' : c.product_count > 15 ? 'New' : 'Lifestyle',
-        title: c.name,
-        sub: `${c.product_count} item${c.product_count === 1 ? '' : 's'}`,
-        link: `/search?category=${c.slug}`,
-      })
-    )
-  if (splitItems.length < 3) {
-    slides.slice(1).forEach((s) => {
-      if (splitItems.length >= 3) return
-      splitItems.push({
-        image: s.image,
-        eyebrow: splitItems.length === 0 ? 'Featured' : 'New',
-        title: s.title || 'New arrivals',
-        sub: s.subtitle || '',
-        link: s.link || '/search',
-      })
-    })
-  }
-
   return (
     <div className="pb-0">
       <section
@@ -93,7 +67,7 @@ export default function MinimalTemplate({
         onMouseLeave={() => setPaused(false)}
       >
         {slides.length > 0 ? (
-          <div className="relative h-[380px] md:h-[440px]">
+          <div className="relative h-[420px] md:h-[500px]">
             {slides.map((s, i) => {
               const isActive = i === index
               return (
@@ -113,24 +87,23 @@ export default function MinimalTemplate({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/50" />
 
-        <div key={index} className="relative w-full px-6 md:px-10 pt-7 md:pt-10 pb-7 md:pb-10 text-white">
+        <div key={index} className="relative w-full px-6 md:px-10 pt-8 md:pt-12 pb-8 md:pb-12 text-white">
           <div className="max-w-3xl fade-up">
             {eyebrow && (
-              <p className="uppercase tracking-[0.25em] text-xs text-accent font-bold mb-3">{eyebrow}</p>
+              <p className="uppercase tracking-[0.3em] text-xs text-accent font-bold mb-3">{eyebrow}</p>
             )}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-[1.1]">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
               {headlineTop}
               {headlineTop && <br />}
               {headlineBottom && <span className="italic text-accent">{headlineBottom}</span>}
             </h1>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 to={active?.link || '/search'}
-                className="bg-accent text-gray-900 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-white transition-colors"
+                className="bg-accent text-white px-7 py-3 rounded-full text-sm font-bold hover:bg-white hover:text-gray-900 transition-colors"
               >
                 Explore
               </Link>
-              
             </div>
           </div>
         </div>
@@ -156,7 +129,7 @@ export default function MinimalTemplate({
                 <button
                   key={s.id}
                   onClick={() => setIndex(i)}
-                  className={`h-2 rounded-full transition-all ${i === index ? 'w-6 bg-accent' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                  className={`h-1.5 rounded-full transition-all ${i === index ? 'w-7 bg-accent' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
                   aria-label={`Go to slide ${i + 1}`}
                 />
               ))}
@@ -166,7 +139,7 @@ export default function MinimalTemplate({
       </section>
 
       {popularProducts.length > 0 && (
-        <section className="w-full px-6 md:px-10 pt-4 pb-20">
+        <section className="w-full px-6 md:px-10 pt-6 pb-20">
           <SectionHeader
             index="01"
             label="Bestsellers"
@@ -212,7 +185,7 @@ export default function MinimalTemplate({
       )}
 
       {features.length > 0 && (
-        <section className="w-full px-6 md:px-10 py-10 border-t border-gray-100">
+        <section className="w-full px-6 md:px-10 py-10 border-t border-primary-light">
           <TrustBand features={features} variant="center" />
         </section>
       )}

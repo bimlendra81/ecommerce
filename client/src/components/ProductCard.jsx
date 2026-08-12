@@ -34,40 +34,36 @@ export default function ProductCard({ product }) {
   }
 
   return (
-    <div className="group bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-all border border-gray-100 hover:-translate-y-[1%] flex flex-col h-full">
+    <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-[0_16px_40px_-12px_rgba(22,22,22,0.18)] transition-all border border-primary-light hover:-translate-y-1 flex flex-col h-full">
       <div className="relative">
-        <Link to={`/product/${product.slug}`} className="block">
+        <Link to={`/product/${product.slug}`} className="block overflow-hidden">
           <MediaSlider
             media={product.media}
             fallback={product.image}
-            containerClass="h-48"
-            aspectClass="h-48"
+            containerClass="aspect-[4/5]"
+            aspectClass="aspect-[4/5]"
             preferVideo
             objectFit="cover"
           />
         </Link>
         <WishlistButton
           productId={product.id}
-          className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white text-gray-500 hover:text-red-600 shadow"
+          className="absolute top-3 right-3 h-8 w-8 bg-white/95 hover:bg-white text-gray-600 hover:text-red-600 shadow-sm rounded-full"
         />
         {saleActive(product) && discountPercent(product) > 0 && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+          <span className="absolute top-3 left-3 bg-accent text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
             -{discountPercent(product)}%
           </span>
         )}
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs uppercase text-gray-400 truncate">
-          {product.brand ? (
-            <span className="text-gray-500">{product.brand}</span>
-          ) : (
-            product.category || 'General'
-          )}
+      <div className="p-4 md:p-5 flex flex-col flex-1">
+        <p className="text-[11px] uppercase tracking-[0.15em] text-gray-400 truncate">
+          {product.brand || product.category || 'General'}
         </p>
         <div className="relative group/name">
           <Link to={`/product/${product.slug}`}>
-            <h3 className="font-semibold mt-1 line-clamp-2 min-h-[3rem] leading-6 group-hover:text-primary">
+            <h3 className="font-semibold mt-1.5 line-clamp-2 min-h-[3rem] leading-6 text-gray-900 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
           </Link>
@@ -75,7 +71,7 @@ export default function ProductCard({ product }) {
             {product.name}
           </span>
         </div>
-        <div className="mt-1 min-h-5 flex items-center gap-1.5">
+        <div className="mt-1.5 min-h-5 flex items-center gap-1.5">
           {product.rating_count > 0 && (
             <>
               <span className="text-sm text-amber-500" aria-label={`${product.rating_avg} out of 5 stars`}>
@@ -88,21 +84,21 @@ export default function ProductCard({ product }) {
             </>
           )}
         </div>
-        <div className="mt-1 flex items-center justify-between">
-          <div className="flex items-baseline gap-1.5">
+        <div className="mt-1.5 flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-primary">${priceNow(product).toFixed(2)}</span>
             {saleActive(product) && (
               <span className="text-sm text-gray-400 line-through">${Number(product.price).toFixed(2)}</span>
             )}
           </div>
-          <span className={`text-xs ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-xs ${product.stock > 0 ? 'text-green-700' : 'text-red-600'}`}>
             {product.stock > 0 ? 'In stock' : 'Out of stock'}
           </span>
         </div>
         <button
           onClick={handleAdd}
           disabled={product.stock <= 0}
-          className="mt-3 w-full bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:bg-gray-200 disabled:text-gray-400"
+          className="mt-3 w-full bg-primary text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-dark disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
         >
           Add to Cart
         </button>

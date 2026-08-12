@@ -34,7 +34,7 @@ export default function TrustBand({ features, variant = 'cards' }) {
       {features.map((f, i) => (
         <div
           key={`${f.title}-${i}`}
-          className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+          className="flex items-center gap-4 bg-white border border-primary-light rounded-2xl p-5 hover:shadow-[0_12px_32px_-12px_rgba(22,22,22,0.14)] transition-shadow"
         >
           <div className="w-12 h-12 rounded-full bg-primary-soft text-primary flex items-center justify-center text-2xl shrink-0">
             {f.icon}

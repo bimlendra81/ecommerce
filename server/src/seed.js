@@ -45,7 +45,7 @@ const settings = {
     { icon: '🔒', title: 'Secure Payment', text: '100% protected checkout' },
     { icon: '🎧', title: '24/7 Support', text: 'We are here to help' },
   ]),
-  theme: JSON.stringify({ selected: 'ocean', primary: '', accent: '' }),
+  theme: JSON.stringify({ selected: 'premium', primary: '', accent: '' }),
   home_template: 'marketplace',
   facebook_url: '',
   instagram_url: '',

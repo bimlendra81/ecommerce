@@ -137,7 +137,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-10 bg-header-bg text-header-text shadow">
+      <header className="sticky top-0 z-10 bg-header-bg text-header-text border-b border-primary-light">
         <nav className="w-full px-4 md:px-8 lg:px-10 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             {settings.site_logo ? (
@@ -147,7 +147,7 @@ export default function Navbar() {
                 className="h-8 w-auto object-contain"
               />
             ) : (
-              <span className="text-xl font-bold">{settings.site_title || 'Shop'}</span>
+              <span className="text-xl font-extrabold tracking-tight">{settings.site_title || 'SHOP'}</span>
             )}
           </Link>
 
@@ -159,7 +159,7 @@ export default function Navbar() {
             <select
               value={searchCategory}
               onChange={(e) => handleCategorySelect(e.target.value)}
-              className="rounded-l-md bg-gray-100 border-r border-gray-200 px-2 py-2 text-sm text-gray-700 focus:outline-none"
+              className="rounded-l-xl bg-primary-soft border-r border-primary-light px-2 py-2 text-sm text-gray-700 focus:outline-none"
               aria-label="Search category"
             >
               <option value="">All</option>
@@ -174,11 +174,11 @@ export default function Navbar() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={selectedCategoryName ? `Search ${selectedCategoryName}` : 'Search products...'}
-              className="w-full bg-white px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none"
+              className="w-full bg-white border-y border-primary-light px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none"
             />
             <button
               type="submit"
-              className="rounded-r-md bg-accent px-4 text-gray-900 hover:bg-accent-dark"
+              className="rounded-r-xl bg-primary text-white px-5 hover:bg-primary-dark transition-colors"
               aria-label="Search"
             >
               <SearchIcon />
@@ -190,7 +190,7 @@ export default function Navbar() {
               <Link to="/wishlist" className="relative hover:text-accent" aria-label="Wishlist">
                 <HeartIcon />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-gray-900 text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
@@ -199,7 +199,7 @@ export default function Navbar() {
             <Link to="/cart" className="relative hover:text-accent" aria-label="Cart">
               <CartIcon />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent text-gray-900 text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -215,7 +215,7 @@ export default function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="h-9 w-9 rounded-full object-cover border border-white/30"
+                      className="h-9 w-9 rounded-full object-cover border border-primary-light"
                     />
                   ) : (
                     <span className="h-9 w-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
@@ -224,35 +224,35 @@ export default function Navbar() {
                   )}
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border py-1 text-gray-800">
-                    <div className="px-4 py-2 border-b">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-primary-light py-1 text-gray-800">
+                    <div className="px-4 py-2 border-b border-primary-light">
                       <p className="text-sm font-semibold truncate">{user?.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                     </div>
                     <Link
                       to="/profile"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm hover:bg-primary-soft"
                     >
                       My Profile
                     </Link>
                     <Link
                       to="/orders"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm hover:bg-primary-soft"
                     >
                       Orders
                     </Link>
                     <Link
                       to="/account/addresses"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm hover:bg-primary-soft"
                     >
                       Addresses
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-primary-soft"
                     >
                       Logout
                     </button>
@@ -262,7 +262,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="bg-accent text-gray-900 px-4 py-2 rounded hover:bg-accent-dark font-medium"
+                className="bg-primary text-white px-5 py-2 rounded-full hover:bg-primary-dark font-medium transition-colors"
               >
                 Login
               </Link>
@@ -274,7 +274,7 @@ export default function Navbar() {
               <Link to="/wishlist" className="relative" aria-label="Wishlist">
                 <HeartIcon />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-accent text-gray-900 text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
@@ -283,7 +283,7 @@ export default function Navbar() {
             <Link to="/cart" className="relative" aria-label="Cart">
               <CartIcon />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent text-gray-900 text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -299,12 +299,12 @@ export default function Navbar() {
         </nav>
 
         {menuOpen && (
-          <div className="md:hidden bg-white border-t px-4 py-3 flex flex-col gap-3 text-base text-gray-800">
+          <div className="md:hidden bg-white border-t border-primary-light px-4 py-3 flex flex-col gap-3 text-base text-gray-800">
             <form noValidate onSubmit={submitSearch} className="flex items-stretch" role="search">
               <select
                 value={searchCategory}
                 onChange={(e) => handleCategorySelect(e.target.value)}
-                className="rounded-l-md border border-r-0 border-gray-300 bg-gray-100 px-2 py-2 text-sm text-gray-700 focus:outline-none"
+                className="rounded-l-md border border-r-0 border-primary-light bg-primary-soft px-2 py-2 text-sm text-gray-700 focus:outline-none"
                 aria-label="Search category"
               >
                 <option value="">All</option>
@@ -319,11 +319,11 @@ export default function Navbar() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={selectedCategoryName ? `Search ${selectedCategoryName}` : 'Search products...'}
-                className="w-full bg-white border border-gray-300 px-3 py-2 text-gray-800 focus:outline-none"
+                className="w-full bg-white border border-primary-light px-3 py-2 text-gray-800 focus:outline-none"
               />
               <button
                 type="submit"
-                className="rounded-r-md border border-l-0 border-gray-300 bg-accent px-3 text-gray-900"
+                className="rounded-r-md border border-l-0 border-primary-light bg-primary px-3 text-white"
                 aria-label="Search"
               >
                 <SearchIcon />
@@ -337,7 +337,7 @@ export default function Navbar() {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      className="h-8 w-8 rounded-full object-cover border border-primary-light"
                     />
                   ) : (
                     <span className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
@@ -360,7 +360,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="bg-accent text-gray-900 px-4 py-2 rounded text-center font-medium"
+                className="bg-primary text-white px-4 py-2 rounded-full text-center font-medium"
               >
                 Login
               </Link>

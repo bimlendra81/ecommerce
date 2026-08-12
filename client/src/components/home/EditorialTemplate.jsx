@@ -18,11 +18,11 @@ function SectionHeader({ index, label, title, link }) {
   return (
     <div className="flex items-end justify-between mb-14">
       <div>
-        <p className="text-sm font-bold tracking-[0.3em] text-gray-400 uppercase mb-3">{index} / {label}</p>
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight">{title}</h2>
+        <p className="text-sm font-bold tracking-[0.3em] text-accent uppercase mb-3">{index} / {label}</p>
+        <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">{title}</h2>
       </div>
       {link && (
-        <Link to={link.to} className="border-b border-gray-900 pb-0.5 font-medium text-sm shrink-0">
+        <Link to={link.to} className="border-b border-primary pb-0.5 font-medium text-sm shrink-0 hover:text-accent hover:border-accent transition-colors">
           {link.label}
         </Link>
       )}
@@ -46,7 +46,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
   const [headlineTop, headlineLast] = splitItalic(
     active?.title || settings.site_title || 'Objects for a better everyday'
   )
-  const heroSub = active?.subtitle || settings.site_tagline
+  const heroSub = settings.site_tagline || 'Quality products at great prices.'
   const heroLink = active?.link || '/search'
 
   const marqueeItems = features.length
@@ -65,7 +65,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
         onMouseLeave={() => setPaused(false)}
       >
         {slides.length > 0 ? (
-          <div className="relative h-[520px] md:h-[640px]">
+          <div className="relative h-[440px] md:h-[520px]">
             {slides.map((s, i) => {
               const isActive = i === index
               return (
@@ -76,7 +76,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
                   }`}
                 >
                   {s.image && (
-                    <img src={resolveAssetUrl(s.image)} alt={s.title || ''} className="w-full h-full object-cover opacity-40" />
+                    <img src={resolveAssetUrl(s.image)} alt={s.title || ''} className="w-full h-full object-cover " />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black" />
                 </div>
@@ -84,32 +84,31 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
             })}
           </div>
         ) : (
-          heroImage && <img src={resolveAssetUrl(heroImage)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />
+          heroImage && <img src={resolveAssetUrl(heroImage)} alt="" className="absolute inset-0 w-full h-full object-cover " />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black" />
 
-        <div key={index} className="relative w-full px-4 md:px-8 py-28 md:py-36 fade-up">
+        <div key={index} className="relative w-full px-4 md:px-8 py-10 md:py-10 ">
           <p className="uppercase tracking-[0.3em] text-xs text-accent font-semibold mb-6">{heroEyebrow}</p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] tracking-tight max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight max-w-4xl">
             {headlineTop}
             {headlineTop && <br />}
             {headlineLast && (
               <span className="italic text-accent">{headlineLast}</span>
             )}
           </h1>
-          {heroSub && <p className="mt-8 max-w-xl text-lg text-white/70">{heroSub}</p>}
+          {heroSub && <p className="mt-6 max-w-xl text-base text-white/70">{heroSub}</p>}
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               to={heroLink}
-              className="bg-accent text-black px-8 py-4 rounded-full font-bold hover:bg-white transition-colors"
+              className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-accent hover:text-white transition-colors"
             >
               Explore
             </Link>
-           
           </div>
         </div>
 
-        <span className="absolute top-8 right-8 text-white/40 font-black text-6xl hidden md:block">
+        <span className="absolute top-8 right-8 text-white/30 font-black text-3xl hidden md:block">
           {String(index + 1).padStart(2, '0')}
         </span>
         <span className="absolute bottom-6 right-8 text-white/40 text-sm tracking-widest hidden md:block">SCROLL ↓</span>
@@ -144,7 +143,7 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
         )}
       </section>
 
-      <div className="bg-accent text-black overflow-hidden py-3">
+      <div className="bg-accent text-black overflow-hidden py-2.5">
         <div className="marquee-track whitespace-nowrap font-bold tracking-wide text-sm">
           {marqueeLine}
           {marqueeLine}
@@ -181,16 +180,16 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
         </section>
       )}
 
-      <section className="relative h-[420px] md:h-[520px] overflow-hidden">
+      <section className="relative h-[320px] md:h-[420px] overflow-hidden">
         <img src={resolveAssetUrl(bannerImage)} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
         <div className="relative h-full w-full px-4 md:px-8 flex items-center">
           <div className="max-w-2xl">
             <p className="text-sm font-bold tracking-[0.3em] text-accent uppercase mb-4">04 / Featured story</p>
-            <h2 className="text-3xl md:text-5xl font-black leading-tight text-white">"{quote}"</h2>
+            <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-white">"{quote}"</h2>
             <Link
               to="/search"
-              className="inline-block mt-8 bg-white text-gray-900 px-8 py-3.5 rounded-full font-semibold hover:bg-accent transition-colors"
+              className="inline-block mt-8 bg-white text-gray-900 px-8 py-3.5 rounded-full font-semibold hover:bg-accent hover:text-white transition-colors"
             >
               Explore the collection
             </Link>
@@ -201,8 +200,8 @@ export default function EditorialTemplate({ slides, popularProducts, categories,
       {categories.length > 0 && (
         <section className="w-full px-4 md:px-8 py-24">
           <div className="mb-14">
-            <p className="text-sm font-bold tracking-[0.3em] text-gray-400 uppercase mb-3">05 / Categories</p>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight">Browse by mood</h2>
+            <p className="text-sm font-bold tracking-[0.3em] text-accent uppercase mb-3">05 / Categories</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">Browse by mood</h2>
           </div>
           <CategoryCarousel
             items={categories.map((c) => ({ ...c, meta: `${c.product_count} item${c.product_count === 1 ? '' : 's'}` }))}

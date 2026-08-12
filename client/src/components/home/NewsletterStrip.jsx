@@ -41,7 +41,7 @@ export default function NewsletterStrip({ variant = 'gradient', eyebrow }) {
     return (
       <section className="w-full px-6 md:px-10 py-20">
         <div className="max-w-xl mx-auto text-center">
-          <p className="uppercase tracking-[0.25em] text-xs text-gray-400 mb-3">Newsletter</p>
+          <p className="uppercase tracking-[0.25em] text-xs text-accent font-bold mb-3">Newsletter</p>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Join the list</h2>
           <p className="text-gray-500 mt-3">Exclusive deals and new arrivals, delivered weekly.</p>
           {doneMsg ? (
@@ -82,7 +82,7 @@ export default function NewsletterStrip({ variant = 'gradient', eyebrow }) {
         <div className="w-full px-4 md:px-8 py-20 grid md:grid-cols-2 gap-10 items-center">
           <div>
             <p className="text-sm font-bold tracking-[0.3em] text-white/70 uppercase mb-3">{eyebrow || '04 / Newsletter'}</p>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight">Get the good stuff.</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Get the good stuff.</h2>
             <p className="text-white/75 mt-3">Exclusive drops, deals and stories. Once a week, never spam.</p>
           </div>
           {doneMsg ? (
@@ -102,7 +102,7 @@ export default function NewsletterStrip({ variant = 'gradient', eyebrow }) {
                   placeholder="your@email.com"
                   className="flex-1 rounded-full px-6 py-4 text-gray-900 placeholder-gray-400 focus:outline-none"
                 />
-                <button className="bg-black text-white px-8 py-4 rounded-full font-bold hover:bg-gray-800 transition-colors">
+                <button className="bg-white text-primary px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-colors">
                   {status === 'loading' ? '...' : 'Subscribe'}
                 </button>
               </form>
@@ -115,9 +115,10 @@ export default function NewsletterStrip({ variant = 'gradient', eyebrow }) {
   }
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary to-accent px-8 py-12 text-center text-white mb-5">
-      <h2 className="text-2xl md:text-3xl font-extrabold">Stay in the loop</h2>
-      <p className="text-white/85 mt-2">Get exclusive deals and new arrivals straight to your inbox.</p>
+    <div className="relative rounded-2xl overflow-hidden bg-primary-soft border border-primary-light px-8 py-12 text-center mb-5">
+      <p className="uppercase tracking-[0.3em] text-xs text-accent font-bold mb-3">Stay in the know</p>
+      <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Get 10% off your first order</h2>
+      <p className="text-gray-500 mt-2">Join our newsletter for exclusive deals and new arrivals.</p>
       {doneMsg ? (
         <div className="mt-6">{doneMsg}</div>
       ) : (
@@ -133,9 +134,9 @@ export default function NewsletterStrip({ variant = 'gradient', eyebrow }) {
               }}
               aria-invalid={Boolean(fieldErrors.email)}
               placeholder="Enter your email"
-              className="flex-1 rounded-full px-5 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/60"
+              className="flex-1 rounded-full px-5 py-3 text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-accent border border-primary-light"
             />
-            <button className="bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors">
+            <button className="bg-primary text-white px-6 py-3 rounded-full font-semibold hover:bg-primary-dark transition-colors">
               {status === 'loading' ? '...' : 'Subscribe'}
             </button>
           </form>

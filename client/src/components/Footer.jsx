@@ -35,13 +35,13 @@ export default function Footer() {
 
   return (
     <footer className="bg-footer-bg text-footer-text">
-      <div className="max-w-6xl mx-auto px-4 py-14 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
           <div className="flex items-center gap-2 mb-3">
             {settings.footer_logo || settings.site_logo ? (
               <img src={settings.footer_logo || settings.site_logo} alt={settings.site_title} className="h-8 w-auto object-contain" />
             ) : (
-              <span className="text-xl font-bold text-footer-text">{settings.site_title || 'Shop'}</span>
+              <span className="text-xl font-extrabold tracking-tight text-footer-text">{settings.site_title || 'SHOP'}</span>
             )}
           </div>
           <p className="text-sm text-footer-text/70 leading-relaxed">
@@ -66,7 +66,7 @@ export default function Footer() {
                   href={settings.instagram_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-footer-text/10 hover:bg-accent-dark flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-full bg-footer-text/10 hover:bg-accent flex items-center justify-center transition-colors"
                   aria-label="Instagram"
                 >
                   ◉
@@ -82,7 +82,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {col.links.map((link) => (
                 <li key={link.label}>
-                  <Link to={link.to} className="hover:text-footer-text">
+                  <Link to={link.to} className="hover:text-accent">
                     {link.label}
                   </Link>
                 </li>
@@ -95,12 +95,12 @@ export default function Footer() {
           <h4 className="text-footer-text font-semibold mb-3">Contact</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <a href={`mailto:${settings.contact_email}`} className="hover:text-footer-text">
+              <a href={`mailto:${settings.contact_email}`} className="hover:text-accent">
                 {settings.contact_email}
               </a>
             </li>
             <li>
-              <a href={`tel:${settings.contact_phone}`} className="hover:text-footer-text">
+              <a href={`tel:${settings.contact_phone}`} className="hover:text-accent">
                 {settings.contact_phone}
               </a>
             </li>

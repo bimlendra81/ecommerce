@@ -32,14 +32,14 @@ export default function CategoryCarousel({ items, cardClass, itemWidth = 'w-56',
         <>
           <button
             onClick={() => scroll(-1)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow text-gray-700 flex items-center justify-center"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow border border-primary-light text-gray-700 flex items-center justify-center"
             aria-label="Scroll left"
           >
             ‹
           </button>
           <button
             onClick={() => scroll(1)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow text-gray-700 flex items-center justify-center"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow border border-primary-light text-gray-700 flex items-center justify-center"
             aria-label="Scroll right"
           >
             ›
