@@ -124,31 +124,88 @@ export async function getStats(req, res, next) {
     const [[products]] = await pool.query('SELECT COUNT(*) AS count FROM products WHERE deleted_at IS NULL');
     const [[users]] = await pool.query("SELECT COUNT(*) AS count FROM users WHERE role = 'user' AND deleted_at IS NULL");
     const [[lowStock]] = await pool.query('SELECT COUNT(*) AS count FROM products WHERE stock <= 5 AND deleted_at IS NULL');
+    const [[pendingOrders]] = await pool.query("SELECT COUNT(*) AS count FROM orders WHERE status = 'pending' AND deleted_at IS NULL");
+
     const [recentOrders] = await pool.query(
       `SELECT o.id, o.total, o.status, o.created_at, u.name AS user_name, u.email AS user_email
        FROM orders o JOIN users u ON u.id = o.user_id
        WHERE o.deleted_at IS NULL
        ORDER BY o.created_at DESC LIMIT 5`
     );
-    const [salesByDay] = await pool.query(
-      `SELECT DATE(created_at) AS day, COUNT(*) AS orders, COALESCE(SUM(total), 0) AS revenue
+
+    // Query 7 days sales data
+    const [rawSalesByDay] = await pool.query(
+      `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS day, COUNT(*) AS orders, COALESCE(SUM(total), 0) AS revenue
        FROM orders
        WHERE status IN ('paid','shipped','in_transit','out_for_delivery','delivered')
          AND deleted_at IS NULL
-         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-       GROUP BY DATE(created_at) ORDER BY day`
+         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+       GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+       ORDER BY day ASC`
     );
+
+    // Build a continuous 7-day breakdown (from 6 days ago to today)
+    const salesMap = new Map();
+    for (const r of rawSalesByDay) {
+      const dayStr = typeof r.day === 'string' ? r.day.split('T')[0] : String(r.day);
+      salesMap.set(dayStr, { orders: Number(r.orders), revenue: Number(r.revenue) });
+    }
+
+    const salesByDay = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      const dayStr = `${year}-${month}-${date}`;
+
+      const data = salesMap.get(dayStr) || { orders: 0, revenue: 0 };
+      salesByDay.push({
+        day: dayStr,
+        orders: data.orders,
+        revenue: data.revenue,
+      });
+    }
+
+    // Top selling products
+    const [topProducts] = await pool.query(
+      `SELECT p.id, p.name, p.price, p.stock, p.image, COALESCE(SUM(oi.quantity), 0) AS total_sold, COALESCE(SUM(oi.price * oi.quantity), 0) AS total_revenue
+       FROM order_items oi
+       JOIN products p ON p.id = oi.product_id
+       JOIN orders o ON o.id = oi.order_id
+       WHERE o.status IN ('paid','shipped','in_transit','out_for_delivery','delivered')
+         AND o.deleted_at IS NULL
+       GROUP BY p.id
+       ORDER BY total_sold DESC LIMIT 5`
+    );
+
+    // Status breakdown
+    const [statusCounts] = await pool.query(
+      `SELECT status, COUNT(*) AS count
+       FROM orders
+       WHERE deleted_at IS NULL
+       GROUP BY status`
+    );
+
+    const totalOrdersCount = Number(sales.order_count) || 0;
+    const totalRevenueVal = Number(sales.revenue) || 0;
+    const avgOrderValue = totalOrdersCount > 0 ? totalRevenueVal / totalOrdersCount : 0;
 
     res.json({
       stats: {
-        revenue: sales.revenue,
-        orderCount: sales.order_count,
-        productCount: products.count,
-        userCount: users.count,
-        lowStockCount: lowStock.count,
+        revenue: totalRevenueVal,
+        orderCount: totalOrdersCount,
+        productCount: Number(products.count) || 0,
+        userCount: Number(users.count) || 0,
+        lowStockCount: Number(lowStock.count) || 0,
+        pendingOrderCount: Number(pendingOrders.count) || 0,
+        avgOrderValue,
       },
       recentOrders,
       salesByDay,
+      topProducts,
+      statusCounts,
     });
   } catch (err) {
     next(err);
