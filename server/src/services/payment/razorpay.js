@@ -49,7 +49,7 @@ export class RazorpayAdapter {
   }
 
   async refund({ txn_id, amount }) {
-    if (!this.instance) {
+    if (!this.razorpay) {
       const err = new Error('Razorpay is not configured');
       err.status = 400;
       throw err;

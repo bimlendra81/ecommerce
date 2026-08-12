@@ -42,14 +42,19 @@ const emptyAddress = {
   country: 'IN',
 }
 
+let razorpayScriptPromise = null
+
 function loadRazorpayScript() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve()
-    const s = document.createElement('script')
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    s.onload = () => resolve()
-    document.body.appendChild(s)
-  })
+  if (window.Razorpay) return Promise.resolve()
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise((resolve) => {
+      const s = document.createElement('script')
+      s.src = 'https://checkout.razorpay.com/v1/razorpay.js'
+      s.onload = () => resolve()
+      document.body.appendChild(s)
+    })
+  }
+  return razorpayScriptPromise
 }
 
 export default function Checkout() {
@@ -83,6 +88,7 @@ export default function Checkout() {
   } = useFormErrors()
   const [stripePayment, setStripePayment] = useState(null)
   const [stripePromise, setStripePromise] = useState(null)
+  const [razorpayPayment, setRazorpayPayment] = useState(null)
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState(null)
   const [couponError, setCouponError] = useState('')
@@ -271,33 +277,15 @@ export default function Checkout() {
         return
       }
 
-      await loadRazorpayScript()
-      const options = {
-        key: pay.key_id,
-        amount: Math.round(Number(pay.amount) * 100),
-        currency: pay.currency || 'INR',
-        name: 'Ecom Shop',
-        description: `Order #${data.order.id}`,
-        order_id: pay.razorpay_order_id,
-        prefill: { email: user?.email || '', name: user?.name || '' },
-        theme: { color: '#2563eb' },
-        handler: async (response) => {
-          await client.post('/payment/verify', {
-            order_id: data.order.id,
-            ...response,
-          })
-          navigate('/orders', { state: { success: true, orderId: data.order.id } })
-        },
-        modal: {
-          ondismiss: () => setPlacing(false),
-        },
-      }
-      const rzp = new window.Razorpay(options)
-      rzp.on('payment.failed', () => {
-        setError('Payment failed. You can try again.')
+      if (pay.gateway === 'razorpay') {
+        await loadRazorpayScript()
+        setRazorpayPayment({
+          order: data.order,
+          payment: pay,
+        })
         setPlacing(false)
-      })
-      rzp.open()
+        return
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to place order')
       setPlacing(false)
@@ -319,7 +307,23 @@ export default function Checkout() {
     navigate('/orders')
   }
 
-  if (items.length === 0 && !stripePayment) {
+  async function confirmRazorpayPayment(response) {
+    await client.post('/payment/verify', {
+      order_id: razorpayPayment.order.id,
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+    })
+    navigate('/orders', { state: { success: true, orderId: razorpayPayment.order.id } })
+  }
+
+  function cancelRazorpayPayment() {
+    setRazorpayPayment(null)
+    setPlacing(false)
+    navigate('/orders')
+  }
+
+  if (items.length === 0 && !stripePayment && !razorpayPayment) {
     return (
       <div className="text-center py-20">
         <p className="text-xl text-gray-600 mb-4">Your cart is empty</p>
@@ -367,6 +371,9 @@ export default function Checkout() {
     stripePromise,
     confirmStripePayment,
     cancelStripePayment,
+    razorpayPayment,
+    confirmRazorpayPayment,
+    cancelRazorpayPayment,
   }
 
   const Layout = CHECKOUT_LAYOUTS[settings.home_template] || MarketplaceCheckoutLayout

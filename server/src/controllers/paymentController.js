@@ -166,6 +166,15 @@ export async function verifyPayment(req, res, next) {
         const pIntentId = req.body.payment_intent_id || verifyRes.payment_intent_id;
         await pool.query("UPDATE payments SET txn_id = ? WHERE order_id = ? AND gateway = 'stripe'", [pIntentId, order.id]);
       }
+      if (gateway === 'razorpay' && req.body.razorpay_order_id) {
+        const [payRows] = await pool.query('SELECT txn_id FROM payments WHERE order_id = ? AND gateway = ?', [order.id, gateway]);
+        const storedTxnId = payRows[0]?.txn_id;
+        if (storedTxnId && storedTxnId !== req.body.razorpay_order_id) {
+          const mismatch = new Error('Razorpay order ID does not match the stored payment');
+          mismatch.status = 400;
+          throw mismatch;
+        }
+      }
       await markPaid(order.id, gateway);
       // AFTER payment success (server-side): create the shipping label.
       await createShippingLabelAfterPayment(order.id);
