@@ -28,6 +28,7 @@ import { UPLOAD_DIR } from './utils/upload.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { testConnection } from './config/db.js';
 import { startTrackingSyncCron } from './services/shipping/tracking.js';
+import { startCronJobs } from './jobs/index.js';
 
 dotenv.config();
 
