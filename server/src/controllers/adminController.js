@@ -4,6 +4,10 @@ import { pool } from '../config/db.js';
 import { UPLOAD_DIR } from '../utils/upload.js';
 import { invalidateStorefront } from '../utils/cache.js';
 import { syncTrackingIfStale } from '../services/shipping/tracking.js';
+import { getAdapterForGateway } from '../services/payment/index.js';
+import { sendMail } from '../services/email.js';
+import { buildRefundProcessedEmail } from '../services/emailTemplates.js';
+import { getCachedSettings } from '../utils/settingsCache.js';
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'in_transit', 'out_for_delivery', 'delivered', 'returned', 'failed', 'cancelled'];
 
@@ -585,7 +589,7 @@ export async function adminGetOrder(req, res, next) {
       [id]
     );
     const [payments] = await pool.query(
-      'SELECT id, gateway, txn_id, amount, status, refund_status, created_at FROM payments WHERE order_id = ?',
+      'SELECT id, gateway, txn_id, amount, status, refund_status, refund_txn_id, refund_amount, created_at FROM payments WHERE order_id = ?',
       [id]
     );
     const [shippingRows] = await pool.query('SELECT * FROM shipping_info WHERE order_id = ?', [id]);
@@ -712,7 +716,7 @@ export async function refundOrder(req, res, next) {
     }
 
     const [payments] = await pool.query(
-      "SELECT id, amount, refund_status FROM payments WHERE order_id = ? AND status = 'paid' ORDER BY id DESC LIMIT 1",
+      "SELECT id, gateway, txn_id, amount, currency, refund_status FROM payments WHERE order_id = ? AND status = 'paid' ORDER BY id DESC LIMIT 1",
       [id]
     );
     if (payments.length === 0) {
@@ -723,7 +727,42 @@ export async function refundOrder(req, res, next) {
       return res.status(400).json({ message: 'This order has already been refunded' });
     }
 
-    await pool.query('UPDATE payments SET refund_status = ? WHERE id = ?', ['refunded', payment.id]);
+    const paidAmount = Number(payment.amount);
+    const requestedAmount = req.body.amount != null ? Number(req.body.amount) : paidAmount;
+    if (!(requestedAmount > 0)) {
+      return res.status(400).json({ message: 'Refund amount must be greater than zero' });
+    }
+    if (requestedAmount > paidAmount) {
+      return res.status(400).json({ message: `Refund amount cannot exceed the paid amount (${paidAmount.toFixed(2)})` });
+    }
+    const isPartial = requestedAmount < paidAmount;
+
+    let refundId = null;
+    if (payment.gateway === 'razorpay' || payment.gateway === 'stripe') {
+      const settings = await getCachedSettings();
+      const adapter = getAdapterForGateway(payment.gateway, settings);
+      if (!adapter) {
+        return res.status(400).json({ message: `${payment.gateway} is not configured` });
+      }
+      try {
+        const refundRes = await adapter.refund({
+          txn_id: payment.txn_id,
+          amount: isPartial ? requestedAmount : undefined,
+        });
+        refundId = refundRes?.id || null;
+      } catch (gatewayErr) {
+        const message = gatewayErr.message || 'Refund failed at payment gateway';
+        if (gatewayErr.status === 400) {
+          return res.status(400).json({ message });
+        }
+        return res.status(502).json({ message: `Refund failed: ${message}` });
+      }
+    }
+
+    await pool.query(
+      'UPDATE payments SET refund_status = ?, refund_txn_id = ?, refund_amount = ? WHERE id = ?',
+      ['refunded', refundId, requestedAmount, payment.id]
+    );
 
     try {
       const settings = await getCachedSettings();
@@ -731,11 +770,15 @@ export async function refundOrder(req, res, next) {
         const [fullOrders] = await pool.query('SELECT o.*, u.email AS user_email, u.name AS user_name FROM orders o JOIN users u ON u.id = o.user_id WHERE o.id = ?', [id]);
         if (fullOrders.length > 0 && fullOrders[0].user_email) {
           const order = fullOrders[0];
-          const { subject, title, bodyHtml } = buildOrderRefundedEmail({
+          const { subject, title, bodyHtml } = buildRefundProcessedEmail({
             store_name: settings.site_title || settings.store_name || 'Acme Store',
             customer_name: order.user_name || 'Customer',
             order,
-            payment,
+            refund: {
+              amount: requestedAmount,
+              gateway: payment.gateway,
+              created_at: new Date().toISOString(),
+            },
           });
           const sent = await sendMail({ to: order.user_email, subject, title, bodyHtml });
           await pool.query('INSERT INTO email_logs (order_id, type, email, subject, status) VALUES (?, ?, ?, ?, ?)', [
@@ -747,7 +790,12 @@ export async function refundOrder(req, res, next) {
       console.error('[adminController] Refund email error:', mailErr.message);
     }
 
-    res.json({ message: `Refunded ${Number(payment.amount).toFixed(2)}` });
+    res.json({
+      message: `Refunded ${Number(requestedAmount).toFixed(2)}`,
+      refund_status: 'refunded',
+      refund_id: refundId,
+      amount: requestedAmount,
+    });
   } catch (err) {
     next(err);
   }

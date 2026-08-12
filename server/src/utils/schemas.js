@@ -123,6 +123,10 @@ export const orderStatusSchema = Joi.object({
     .required(),
 });
 
+export const refundSchema = Joi.object({
+  amount: Joi.number().positive().precision(2),
+});
+
 export const updateUserSchema = Joi.object({
   active: Joi.boolean(),
   role: Joi.string().valid('user', 'admin'),

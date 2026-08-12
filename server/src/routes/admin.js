@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { adminAuth } from '../middleware/adminAuth.js';
 import { validate } from '../middleware/validate.js';
-import { productSchema, categorySchema, brandSchema, slideSchema, orderStatusSchema, updateUserSchema, updateShippingSchema, addShippingEventSchema, moderateReviewSchema, couponSchema, categoryFeaturedSchema, settingsSchema } from '../utils/schemas.js';
+import { productSchema, categorySchema, brandSchema, slideSchema, orderStatusSchema, updateUserSchema, updateShippingSchema, addShippingEventSchema, moderateReviewSchema, couponSchema, categoryFeaturedSchema, settingsSchema, refundSchema } from '../utils/schemas.js';
 import { upload } from '../utils/upload.js';
 import {
   getStats,
@@ -142,7 +142,7 @@ router.put('/settings', handleSettingsUpload, validate(settingsSchema), updateSe
 router.get('/orders', adminListOrders);
 router.get('/orders/:id', adminGetOrder);
 router.patch('/orders/:id', validate(orderStatusSchema), updateOrderStatus);
-router.post('/orders/:id/refund', refundOrder);
+router.post('/orders/:id/refund', validate(refundSchema), refundOrder);
 router.delete('/orders/:id', deleteOrder);
 router.post('/orders/:id/restore', restoreOrder);
 

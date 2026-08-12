@@ -31,7 +31,7 @@ export class RazorpayAdapter {
   }
 
   async verify({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
-    if (!this.instance || !this.keySecret) {
+    if (!this.razorpay || !this.keySecret) {
       const err = new Error('Razorpay is not configured');
       err.status = 400;
       throw err;
@@ -63,6 +63,6 @@ export class RazorpayAdapter {
     if (amount) {
       params.amount = Math.round(Number(amount) * 100);
     }
-    return await this.instance.payments.refund(txn_id, params);
+    return await this.razorpay.payments.refund(txn_id, params);
   }
 }

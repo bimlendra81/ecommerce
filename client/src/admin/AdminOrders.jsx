@@ -141,8 +141,15 @@ export default function AdminOrders() {
   }
 
   async function refundOrder(orderId) {
+    const amountInput = window.prompt('Refund amount (leave empty for full refund):')
+    if (amountInput === null) return
+    const body = {}
+    const amount = Number(amountInput)
+    if (amountInput.trim() !== '' && !Number.isNaN(amount)) {
+      body.amount = amount
+    }
     await run('refund', async () => {
-      await client.post(`/admin/orders/${orderId}/refund`)
+      await client.post(`/admin/orders/${orderId}/refund`, body)
       loadOrders()
       await refreshOrder(orderId)
     })
@@ -307,7 +314,8 @@ export default function AdminOrders() {
                           </span>
                           {p.refund_status === 'refunded' && (
                             <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                              Refunded
+                              Refunded{p.refund_amount ? ` · $${Number(p.refund_amount).toFixed(2)}` : ''}
+                              {p.refund_txn_id ? ` · ${p.refund_txn_id}` : ''}
                             </span>
                           )}
                           {p.refund_status === 'requested' && (
@@ -318,10 +326,7 @@ export default function AdminOrders() {
                           {p.refund_status === 'none' &&
                             ['paid', 'shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(expanded.status) && (
                               <button
-                                onClick={() => {
-                                  if (!confirm(`Refund $${Number(p.amount).toFixed(2)} for order #${expanded.id}?`)) return
-                                  refundOrder(expanded.id)
-                                }}
+                                onClick={() => refundOrder(expanded.id)}
                                 disabled={busyKey === 'refund'}
                                 className="text-red-600 hover:underline text-xs disabled:opacity-50"
                               >

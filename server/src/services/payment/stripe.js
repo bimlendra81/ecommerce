@@ -47,6 +47,24 @@ export class StripeAdapter {
     return true;
   }
 
+  async refund({ txn_id, amount }) {
+    if (!this.stripe) {
+      const err = new Error('Stripe is not configured');
+      err.status = 400;
+      throw err;
+    }
+    if (!txn_id) {
+      const err = new Error('Transaction ID is missing for Stripe refund');
+      err.status = 400;
+      throw err;
+    }
+    const params = { payment_intent: txn_id };
+    if (amount) {
+      params.amount = Math.round(Number(amount) * 100);
+    }
+    return await this.stripe.refunds.create(params);
+  }
+
   async constructEvent(body, signature) {
     if (!this.stripe) {
       const err = new Error('Stripe is not configured');

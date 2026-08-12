@@ -235,6 +235,8 @@ async function migrate() {
   await addColumn('reviews', 'reported_at', 'DATETIME NULL');
 
   await addColumn('payments', 'refund_status', "ENUM('none', 'requested', 'refunded') NOT NULL DEFAULT 'none'");
+  await addColumn('payments', 'refund_txn_id', 'VARCHAR(255) NULL');
+  await addColumn('payments', 'refund_amount', 'DECIMAL(10, 2) NULL');
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS coupons (

@@ -18,15 +18,19 @@ export function gatewayIsConfigured(gateway, settings) {
   return true;
 }
 
+export function getAdapterForGateway(gateway, settings) {
+  if (gateway === 'razorpay') return new RazorpayAdapter(settings);
+  if (gateway === 'stripe') return new StripeAdapter(settings);
+  return null;
+}
+
 export async function getPaymentAdapter() {
   const settings = await loadSettings();
   const gateway = settings.payment_gateway || 'test';
   const currency = settings.payment_currency || 'INR';
   const configured = gatewayIsConfigured(gateway, settings);
 
-  let adapter = null;
-  if (gateway === 'razorpay') adapter = new RazorpayAdapter(settings);
-  else if (gateway === 'stripe') adapter = new StripeAdapter(settings);
+  const adapter = getAdapterForGateway(gateway, settings);
 
   return { gateway, currency, configured, settings, adapter };
 }

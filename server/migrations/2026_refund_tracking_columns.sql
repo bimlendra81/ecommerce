@@ -1,0 +1,4 @@
+USE ecom;
+ALTER TABLE payments
+  ADD COLUMN IF NOT EXISTS refund_txn_id VARCHAR(255) NULL,
+  ADD COLUMN IF NOT EXISTS refund_amount DECIMAL(10, 2) NULL;
