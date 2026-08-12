@@ -178,7 +178,7 @@ export default function Navbar() {
             />
             <button
               type="submit"
-              className="rounded-r-xl bg-primary text-white px-5 hover:bg-primary-dark transition-colors"
+              className="rounded-r-xl bg-accent text-white px-5 hover:bg-accent-dark transition-colors"
               aria-label="Search"
             >
               <SearchIcon />
@@ -323,7 +323,7 @@ export default function Navbar() {
               />
               <button
                 type="submit"
-                className="rounded-r-md border border-l-0 border-primary-light bg-primary px-3 text-white"
+                className="rounded-r-md border border-l-0 border-primary-light bg-accent px-3 text-white"
                 aria-label="Search"
               >
                 <SearchIcon />
