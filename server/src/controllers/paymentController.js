@@ -132,6 +132,8 @@ export async function createPayment(req, res, next) {
       });
     }
 
+    order.user_email = req.user.email;
+    order.user_name = req.user.name;
     const payload = await adapter.createOrder(order);
     await upsertPayment(order.id, payload);
     res.json({ test: false, ...payload });
@@ -159,7 +161,11 @@ export async function verifyPayment(req, res, next) {
     }
 
     try {
-      await adapter.verify(req.body);
+      const verifyRes = await adapter.verify(req.body);
+      if (req.body.payment_intent_id || verifyRes?.payment_intent_id) {
+        const pIntentId = req.body.payment_intent_id || verifyRes.payment_intent_id;
+        await pool.query("UPDATE payments SET txn_id = ? WHERE order_id = ? AND gateway = 'stripe'", [pIntentId, order.id]);
+      }
       await markPaid(order.id, gateway);
       // AFTER payment success (server-side): create the shipping label.
       await createShippingLabelAfterPayment(order.id);

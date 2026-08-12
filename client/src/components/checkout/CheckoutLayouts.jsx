@@ -437,7 +437,18 @@ function StripePaymentForm({ o }) {
 
   return (
     <form noValidate onSubmit={pay}>
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <PaymentElement
+        options={{
+          layout: 'tabs',
+          defaultValues: {
+            billingDetails: {
+              name: o.user?.name || '',
+              email: o.user?.email || '',
+              phone: o.user?.phone || '',
+            },
+          },
+        }}
+      />
       {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
       <button type="submit" disabled={!stripe || paying} className={btn}>
         {paying ? 'Processing payment...' : 'Pay Now'}

@@ -31,20 +31,38 @@ export class RazorpayAdapter {
   }
 
   async verify({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
-    if (!this.razorpay) {
+    if (!this.instance || !this.keySecret) {
       const err = new Error('Razorpay is not configured');
       err.status = 400;
       throw err;
     }
-    const expected = crypto
-      .createHmac('sha256', this.keySecret)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex');
+
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expected = crypto.createHmac('sha256', this.keySecret).update(body).digest('hex');
     if (expected !== razorpay_signature) {
-      const err = new Error('Invalid payment signature');
+      const err = new Error('Invalid Razorpay signature');
       err.status = 400;
       throw err;
     }
-    return true;
+
+    return { status: 'succeeded', razorpay_payment_id };
+  }
+
+  async refund({ txn_id, amount }) {
+    if (!this.instance) {
+      const err = new Error('Razorpay is not configured');
+      err.status = 400;
+      throw err;
+    }
+    if (!txn_id) {
+      const err = new Error('Transaction ID is missing for Razorpay refund');
+      err.status = 400;
+      throw err;
+    }
+    const params = {};
+    if (amount) {
+      params.amount = Math.round(Number(amount) * 100);
+    }
+    return await this.instance.payments.refund(txn_id, params);
   }
 }
