@@ -145,6 +145,10 @@ export function buildOutForDeliveryEmail({ store_name = 'Acme Store', customer_n
   return { subject, title, bodyHtml: `<p>Your order #${order.id} is out for delivery today!</p>` };
 }
 
+export function buildOrderDeliveredEmail({ store_name = 'Acme Store', customer_name, order, delivered_date }) {
+  return buildDeliveredEmail({ store_name, customer_name, order, delivered_date });
+}
+
 export function buildDeliveredEmail({ store_name = 'Acme Store', customer_name, order, delivered_date }) {
   const subject = `Your order #${order.id} has been delivered 🎉`;
   const title = store_name;
