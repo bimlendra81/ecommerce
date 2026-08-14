@@ -77,7 +77,7 @@ export async function quoteMethods({ methods, weight, destination, adapter, sett
 export function applyFreeShipping(methods, subtotal, threshold) {
   const t = Number(threshold);
   if (!t || subtotal >= t) {
-    return methods.map((m) => (m.shippo_rate_id ? m : { ...m, fee: 0, free: true }));
+    return methods.map((m) => ({ ...m, fee: 0, free: true }));
   }
   return methods;
 }

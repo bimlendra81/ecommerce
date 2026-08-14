@@ -87,7 +87,7 @@ function SectionHeading({ o, num, title }) {
   )
 }
 
-function AddressSection({ o }) {
+export function AddressSection({ o }) {
   const v = o.variant
   const accent = RADIO_ACCENT[v]
   const addBtn =
@@ -265,75 +265,6 @@ function NewAddressForm({ o }) {
   )
 }
 
-function ShippingSection({ o }) {
-  const v = o.variant
-  const accent = RADIO_ACCENT[v]
-  const wrap =
-    v === 'marketplace'
-      ? 'bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden'
-      : ''
-  return (
-    <section className={wrap}>
-      {v === 'marketplace' ? (
-        <h2 className="px-5 py-4 font-semibold border-b border-gray-100">Shipping method</h2>
-      ) : (
-        <SectionHeading o={o} num="04" title="Shipping method" />
-      )}
-      <div className={v === 'marketplace' ? 'p-5 space-y-2' : 'space-y-2'}>
-        {o.quoteLoading ? (
-          <p className="text-sm text-gray-500">Getting shipping rates...</p>
-        ) : !o.quote ? (
-          <p className="text-sm text-gray-500">Select an address to see shipping options.</p>
-        ) : (
-          o.quote.quotes.map((q) => {
-            const selected = o.methodId === String(q.method_id)
-            return (
-              <label
-                key={q.method_id}
-                className={`block cursor-pointer transition-colors ${selected ? CARD_SELECTED[v] : CARD_IDLE[v]} ${v === 'marketplace' ? 'border rounded-xl p-4' : v === 'minimal' ? 'border p-4' : 'p-4'}`}
-              >
-                <div className="flex items-start gap-3">
-                  <input
-                    type="radio"
-                    name="method"
-                    checked={selected}
-                    onChange={() => o.selectMethod(String(q.method_id), q)}
-                    className={`mt-1 ${accent}`}
-                  />
-                  <div className="flex-1 text-sm">
-                    <p className={v === 'editorial' ? 'font-black' : 'font-medium'}>
-                      {q.name}
-                      {q.carrier && q.carrier !== 'manual' ? (
-                        <span className={`ml-2 text-xs text-gray-500 ${v === 'editorial' ? 'font-medium' : ''}`}>
-                          via {q.carrier}
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="text-gray-500">
-                      {q.estimated_days_min === q.estimated_days_max
-                        ? `${q.estimated_days_min} day`
-                        : `${q.estimated_days_min}-${q.estimated_days_max} days`}
-                      {q.description ? ` · ${q.description}` : ''}
-                    </p>
-                    {q.rate_error ? (
-                      <p className="text-xs text-amber-600 mt-0.5">
-                        Estimated rate — live rate unavailable ({q.rate_error})
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className={`${v === 'editorial' ? 'font-black' : 'font-semibold'} ${q.free ? 'text-green-600' : ''}`}>
-                    {q.free ? 'Free' : formatMoney(q.fee, q.currency)}
-                  </span>
-                </div>
-              </label>
-            )
-          })
-        )}
-      </div>
-    </section>
-  )
-}
-
 function ItemsSection({ o }) {
   const v = o.variant
   return (
@@ -476,96 +407,15 @@ function StripePaymentSection({ o }) {
   )
 }
 
-const FALLBACK_RAZORPAY_METHODS = { card: true, netbanking: true, upi: true }
-
-const FALLBACK_RAZORPAY_BANKS = [
-  { code: 'HDFC', name: 'HDFC Bank' },
-  { code: 'ICIC', name: 'ICICI Bank' },
-  { code: 'SBIN', name: 'State Bank of India' },
-  { code: 'UTIB', name: 'Axis Bank' },
-  { code: 'KKBK', name: 'Kotak Bank' },
-]
-
-function parseExpiry(value) {
-  const m = value.replace(/\s+/g, '').match(/^(\d{2})[/-]?(\d{2})$/)
-  if (!m) return null
-  return { month: m[1], year: m[2] }
-}
-
-function RazorpayInlineForm({ o }) {
+function RazorpayCheckoutButton({ o }) {
   const v = o.variant
   const { payment } = o.razorpayPayment
-  const [rzp, setRzp] = useState(null)
-  const [enabled, setEnabled] = useState(null)
-  const [banks, setBanks] = useState([])
-  const [usedFallback, setUsedFallback] = useState(false)
-  const [tab, setTab] = useState('card')
   const [paying, setPaying] = useState(false)
   const [error, setError] = useState('')
-  const [card, setCard] = useState({ name: '', number: '', expiry: '', cvv: '' })
-  const [bank, setBank] = useState('')
-  const readyRef = useRef(false)
   const handledRef = useRef(false)
 
   useEffect(() => {
-    if (!payment?.key_id || !payment?.razorpay_order_id) return
-    let cancelled = false
-    let instance = null
-
-    const timer = setTimeout(() => {
-      if (!readyRef.current) {
-        readyRef.current = true
-        setEnabled(FALLBACK_RAZORPAY_METHODS)
-        setBanks(FALLBACK_RAZORPAY_BANKS)
-        setUsedFallback(true)
-      }
-    }, 5000)
-
-    async function init() {
-      if (!window.Razorpay) await loadRazorpayScript()
-      if (cancelled || !window.Razorpay) return
-      instance = new window.Razorpay({
-        key: payment.key_id,
-        image: o.settings?.site_logo || undefined,
-      })
-      setRzp(instance)
-
-      instance.once('ready', (response) => {
-        clearTimeout(timer)
-        readyRef.current = true
-        setEnabled(response.methods)
-        setBanks(instance?.methods?.netbanking || [])
-      })
-
-      instance.on('payment.success', async (resp) => {
-        if (handledRef.current) return
-        handledRef.current = true
-        setError('')
-        setPaying(true)
-        try {
-          await o.confirmRazorpayPayment(resp)
-        } catch (err) {
-          handledRef.current = false
-          setError(err.response?.data?.message || 'Payment could not be verified. Please try again.')
-          setPaying(false)
-        }
-      })
-
-      instance.on('payment.error', (resp) => {
-        handledRef.current = false
-        setError(resp?.error?.description || 'Payment failed. Please try again.')
-        setPaying(false)
-      })
-    }
-    init()
-
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-      instance?.off?.('payment.success')
-      instance?.off?.('payment.error')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadRazorpayScript().catch(() => {})
   }, [])
 
   if (!payment?.key_id || !payment?.razorpay_order_id) {
@@ -576,20 +426,6 @@ function RazorpayInlineForm({ o }) {
     )
   }
 
-  const tabs = [
-    { id: 'card', label: 'Cards', visible: enabled ? !!enabled.card : true },
-    { id: 'netbanking', label: 'Netbanking', visible: enabled ? !!enabled.netbanking : true },
-    { id: 'upi', label: 'UPI / QR', visible: enabled ? !!enabled.upi : true },
-  ]
-  const activeTab = tabs.find((t) => t.id === tab && t.visible)?.id || tabs.find((t) => t.visible)?.id || 'card'
-
-  const input = INPUT_CLASSES[v]
-  const tabBtn = (active) =>
-    v === 'marketplace'
-      ? `flex-1 py-2 text-sm font-medium rounded-lg ${active ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'}`
-      : v === 'minimal'
-        ? `flex-1 py-2 text-sm font-medium ${active ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'}`
-        : `flex-1 py-2 text-sm font-bold ${active ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`
   const payBtn =
     v === 'marketplace'
       ? 'mt-4 w-full bg-primary text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-dark disabled:opacity-50'
@@ -597,155 +433,103 @@ function RazorpayInlineForm({ o }) {
         ? 'mt-4 w-full bg-gray-900 text-white px-6 py-3 font-medium hover:bg-gray-800 disabled:opacity-50'
         : 'mt-4 w-full bg-black text-white px-6 py-3 text-sm font-bold hover:bg-gray-800 disabled:opacity-50'
 
-  function pay(e) {
-    e.preventDefault()
-    if (!rzp || paying) return
+  let themeColor = '#6366f1'
+  try {
+    const t = JSON.parse(o.settings?.theme || '{}')
+    if (t?.primary) themeColor = t.primary
+  } catch {
+    // ignore
+  }
+
+  async function pay() {
+    if (paying) return
     setError('')
+    try {
+      await Promise.race([
+        loadRazorpayScript(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
+      ])
+    } catch {
+      setError('Could not load Razorpay. Please try again.')
+      return
+    }
+    if (!window.Razorpay) {
+      setError('Could not load Razorpay. Please try again.')
+      return
+    }
+
     const addr = o.addresses?.find((a) => String(a.id) === o.addressId)
-    const contact = o.user?.phone || addr?.phone || ''
-    if (!o.user?.email || !contact) {
+    const contact = (o.user?.phone || addr?.phone || '').replace(/\D+/g, '').slice(-10)
+    const contactEmail = (o.user?.email || '').trim()
+    if (!contactEmail || !contact) {
       setError('Please add a contact phone and email to your account before paying.')
       return
     }
-    const base = {
-      amount: Math.round(Number(payment.amount) * 100),
-      currency: payment.currency || 'INR',
-      email: o.user.email,
-      contact,
-      order_id: payment.razorpay_order_id,
-    }
-    let data
-    if (activeTab === 'card') {
-      const expiry = parseExpiry(card.expiry)
-      const month = expiry ? Number(expiry.month) : 0
-      if (!card.name.trim() || !card.number.trim() || !card.cvv.trim() || !expiry || month < 1 || month > 12) {
-        setError('Please fill in all card details correctly')
-        return
-      }
-      data = {
-        ...base,
-        method: 'card',
-        'card[name]': card.name.trim(),
-        'card[number]': card.number.replace(/\s+/g, ''),
-        'card[cvv]': card.cvv.trim(),
-        'card[expiry_month]': expiry.month,
-        'card[expiry_year]': expiry.year,
-      }
-    } else if (activeTab === 'netbanking') {
-      if (!bank) {
-        setError('Please select your bank')
-        return
-      }
-      data = { ...base, method: 'netbanking', bank }
-    } else {
-      data = { ...base, method: 'upi', upi: { qr: true, timeout: 10 } }
-    }
+
     setPaying(true)
-    rzp.createPayment(data)
+    const openTimer = setTimeout(() => {
+      setPaying(false)
+      setError('Razorpay did not open. Please try again.')
+    }, 30000)
+
+    try {
+      const rzp = new window.Razorpay({
+        key: payment.key_id,
+        amount: Math.round(Number(payment.amount) * 100),
+        currency: payment.currency || 'INR',
+        name: o.settings?.site_title || 'Store',
+        description: `Order #${payment.order_id}`,
+        image: o.settings?.site_logo || undefined,
+        order_id: payment.razorpay_order_id,
+        prefill: {
+          name: o.user?.name || '',
+          email: contactEmail,
+          contact,
+        },
+        theme: { color: themeColor },
+        modal: {
+          ondismiss: () => {
+            clearTimeout(openTimer)
+            setPaying(false)
+          },
+        },
+        handler: async (resp) => {
+          clearTimeout(openTimer)
+          if (handledRef.current) return
+          handledRef.current = true
+          try {
+            await o.confirmRazorpayPayment(resp)
+          } catch (err) {
+            handledRef.current = false
+            setPaying(false)
+            setError(err.response?.data?.message || 'Payment could not be verified. Please try again.')
+          }
+        },
+      })
+
+      rzp.on('payment.error', (resp) => {
+        clearTimeout(openTimer)
+        handledRef.current = false
+        setPaying(false)
+        setError(resp?.error?.description || 'Payment failed. Please try again.')
+      })
+
+      rzp.open()
+    } catch (err) {
+      clearTimeout(openTimer)
+      setPaying(false)
+      setError(err?.message || 'Could not open Razorpay. Please try again.')
+    }
   }
 
   return (
-    <form noValidate onSubmit={pay} className="border-t border-gray-100 pt-4 mt-2 space-y-3">
-      <div className="flex gap-2">
-        {tabs.filter((t) => t.visible).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => {
-              setTab(t.id)
-              setError('')
-            }}
-            className={tabBtn(activeTab === t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'card' && (
-        <div className="space-y-3">
-          <input
-            className={input}
-            placeholder="Name on card"
-            autoComplete="cc-name"
-            value={card.name}
-            onChange={(e) => setCard((c) => ({ ...c, name: e.target.value }))}
-          />
-          <input
-            className={input}
-            placeholder="Card number"
-            inputMode="numeric"
-            autoComplete="cc-number"
-            value={card.number}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D+/g, '').slice(0, 16)
-              setCard((c) => ({ ...c, number: digits.replace(/(\d{4})(?=\d)/g, '$1 ') }))
-            }}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className={input}
-              placeholder="Expiry (MM/YY)"
-              inputMode="numeric"
-              autoComplete="cc-exp"
-              value={card.expiry}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D+/g, '').slice(0, 4)
-                const formatted = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits
-                setCard((c) => ({ ...c, expiry: formatted }))
-              }}
-            />
-            <input
-              className={input}
-              placeholder="CVV"
-              type="password"
-              inputMode="numeric"
-              autoComplete="cc-csc"
-              maxLength={4}
-              value={card.cvv}
-              onChange={(e) => setCard((c) => ({ ...c, cvv: e.target.value.replace(/\D+/g, '').slice(0, 4) }))}
-            />
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'netbanking' && (
-        <div className="space-y-3">
-          <select
-            className={input}
-            value={bank}
-            onChange={(e) => {
-              setBank(e.target.value)
-              setError('')
-            }}
-          >
-            <option value="">Select your bank</option>
-            {banks.map((b) => (
-              <option key={b.code} value={b.code}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-          {usedFallback && (
-            <p className="text-xs text-amber-600">Couldn't load your account's bank list — showing defaults. Refresh the page to reload all banks.</p>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'upi' && (
-        <p className="text-sm text-gray-600">
-          Tap Pay Now to show a QR code. Scan it with any UPI app, approve the payment, and return to this page.
-        </p>
-      )}
-
-      {usedFallback && (
-        <p className="text-xs text-amber-600">Couldn't load all payment methods — showing a minimal set. Refresh the page to load all options.</p>
-      )}
-
+    <div className="border-t border-gray-100 pt-4 mt-2 space-y-3">
+      <p className="text-sm text-gray-600">
+        You'll be redirected to Razorpay's secure checkout to complete the payment.
+      </p>
       {error && <p className="text-xs text-red-600">{error}</p>}
-
-      <button type="submit" disabled={!rzp || paying} className={payBtn}>
-        {paying ? 'Processing payment...' : 'Pay Now'}
+      <button type="button" onClick={pay} disabled={paying} className={payBtn}>
+        {paying ? 'Opening Razorpay...' : `Pay ${formatMoney(payment.amount, payment.currency)}`}
       </button>
       <button
         type="button"
@@ -754,20 +538,22 @@ function RazorpayInlineForm({ o }) {
       >
         Cancel payment
       </button>
-    </form>
+    </div>
   )
 }
 
 function OrderSummaryPanel({ o }) {
   const v = o.variant
-  const selectedMethod = o.quote?.quotes?.find((q) => String(q.method_id) === o.methodId)
+  const selectedMethod = o.effectiveQuote || null
   const shippingFee = selectedMethod ? Number(selectedMethod.fee) : 0
   const shippingLabel =
-    o.quote && !selectedMethod
-      ? '—'
-      : selectedMethod?.free
-        ? 'Free'
-        : `$${shippingFee.toFixed(2)}`
+    o.shippingFree
+      ? 'Free'
+      : !o.quote
+        ? '—'
+        : selectedMethod?.free
+          ? 'Free'
+          : `$${shippingFee.toFixed(2)}`
   const order = o.stripePayment?.order || o.razorpayPayment?.order || null
   const displaySubtotal = order ? Number(order.subtotal) : o.subtotal
   const displayShipping = order ? Number(order.shipping_fee) : shippingFee
@@ -776,6 +562,14 @@ function OrderSummaryPanel({ o }) {
       ? 'Free'
       : `$${displayShipping.toFixed(2)}`
     : shippingLabel
+  const orderShipping = order?.shipping || null
+  const displayShippingMethod = orderShipping?.method_name || selectedMethod?.name || ''
+  let displayShippingEta = ''
+  if (!order && selectedMethod && (selectedMethod.estimated_days_min != null || selectedMethod.estimated_days_max != null)) {
+    const mn = selectedMethod.estimated_days_min
+    const mx = selectedMethod.estimated_days_max
+    displayShippingEta = mn === mx ? `${mn} day` : `${mn}-${mx} days`
+  }
   const displayDiscount = order ? Number(order.discount || 0) : o.coupon?.discount || 0
   const displayTax = order
     ? Number(order.tax_fee || 0)
@@ -878,7 +672,17 @@ function OrderSummaryPanel({ o }) {
           )}
           <div className="flex justify-between">
             <dt className={v === 'editorial' ? 'text-gray-500' : 'text-gray-600'}>Shipping</dt>
-            <dd className="font-medium">{displayShippingLabel}</dd>
+            <dd className="text-right">
+              <span className={`font-medium ${displayShipping === 0 ? 'text-green-600' : ''}`}>
+                {displayShippingLabel}
+              </span>
+              {displayShippingMethod ? (
+                <span className="block text-[10px] text-gray-400">
+                  {displayShippingMethod}
+                  {displayShippingEta ? ` · ${displayShippingEta}` : ''}
+                </span>
+              ) : null}
+            </dd>
           </div>
           {displayTax > 0 && (
             <div className="flex justify-between">
@@ -915,17 +719,28 @@ function OrderSummaryPanel({ o }) {
         </p>
 
         {o.stripePayment ? (
-          <StripePaymentSection o={o} />
+          o.paymentValidated ? (
+            <StripePaymentSection o={o} />
+          ) : (
+            <p className="text-xs text-gray-500 mt-2">Verifying previous payment…</p>
+          )
         ) : o.razorpayPayment ? (
-          <RazorpayInlineForm o={o} />
+          <RazorpayCheckoutButton o={o} />
         ) : (
           <button
             onClick={o.placeOrder}
-            disabled={o.placing}
+            disabled={o.placing || !o.shippingResolved}
             className={btn}
           >
             {o.placing ? 'Placing order...' : 'Place Order & Pay'}
           </button>
+        )}
+        {!o.stripePayment && !o.razorpayPayment && !o.shippingResolved && (
+          <p className="text-xs text-amber-600 mt-2">
+            {o.quoteLoading
+              ? 'Getting shipping rates...'
+              : 'Select a shipping address to continue'}
+          </p>
         )}
         {v !== 'marketplace' && (
           <p className={`text-[11px] text-gray-400 text-center ${v === 'editorial' ? 'mt-2.5 text-[10px] font-medium' : 'mt-3'}`}>
@@ -984,7 +799,6 @@ export function MarketplaceCheckoutLayout({ o }) {
               <>
                 <ItemsSection o={o} />
                 <AddressSection o={o} />
-                <ShippingSection o={o} />
               </>
             )}
             {o.error && <p className="bg-red-100 text-red-700 p-3 rounded-lg text-sm">{o.error}</p>}
@@ -1020,7 +834,6 @@ export function MinimalCheckoutLayout({ o }) {
               <>
                 <ItemsSection o={o} />
                 <AddressSection o={o} />
-                <ShippingSection o={o} />
               </>
             )}
             {o.error && <p className="bg-red-100 text-red-700 p-3 text-sm">{o.error}</p>}
@@ -1064,7 +877,6 @@ export function EditorialCheckoutLayout({ o }) {
               <>
                 <ItemsSection o={o} />
                 <AddressSection o={o} />
-                <ShippingSection o={o} />
               </>
             )}
             {o.error && (

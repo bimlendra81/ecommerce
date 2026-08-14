@@ -1,6 +1,15 @@
 import { Link } from 'react-router-dom'
 import MediaSlider from '../MediaSlider'
 import { resolveAssetUrl } from '../../utils/media'
+import { AddressSection } from '../checkout/CheckoutLayouts'
+
+function formatMoney(amount, currency) {
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency: currency || 'USD' }).format(Number(amount) || 0)
+  } catch {
+    return `$${Number(amount || 0).toFixed(2)}`
+  }
+}
 
 const CART_ICON = (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -216,14 +225,24 @@ function OrderSummary({ c, variant }) {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Shipping</span>
-            <span className={`${rowVal} ${c.shippingFree ? 'text-green-600' : ''}`}>
-              {c.shippingFree ? 'Free' : `$${c.shippingFee.toFixed(2)}`}
+            <span className="text-right">
+              <span className={`${rowVal} ${c.shippingFree ? 'text-green-600' : ''}`}>
+                {c.shippingFree ? 'Free' : c.shippingFee > 0 ? formatMoney(c.shippingFee, c.shippingCurrency) : '—'}
+              </span>
+              {c.shippingMethodName ? (
+                <span className="block text-[10px] text-gray-400">
+                  {c.shippingMethodName}
+                  {c.shippingEta ? ` · ${c.shippingEta}` : ''}
+                </span>
+              ) : null}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Tax (est.)</span>
-            <span className={rowVal}>${c.taxEstimate.toFixed(2)}</span>
-          </div>
+          {c.taxEstimate > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tax (est.)</span>
+              <span className={rowVal}>${c.taxEstimate.toFixed(2)}</span>
+            </div>
+          )}
         </div>
 
         <div className={totalWrap}>
@@ -231,9 +250,18 @@ function OrderSummary({ c, variant }) {
           <span>${c.grandTotal.toFixed(2)}</span>
         </div>
 
-        <Link to="/checkout" className={checkoutBtn}>
-          Proceed to Checkout
-        </Link>
+        {c.shippingResolved ? (
+          <Link to="/checkout" className={checkoutBtn}>
+            Proceed to Checkout
+          </Link>
+        ) : (
+          <span className={`${checkoutBtn} opacity-50 cursor-not-allowed`}>
+            Proceed to Checkout
+          </span>
+        )}
+        {!c.shippingResolved && (
+          <p className="text-xs text-amber-600 text-center mt-2">{c.shippingHint}</p>
+        )}
         {variant !== 'marketplace' && (
           <p className={trustLine}>🔒 Secure · ↩️ Returns · 🎧 Support</p>
         )}
@@ -389,7 +417,7 @@ function Recommendations({ c, variant }) {
    Layout: Marketplace
    ============================================================ */
 
-export function MarketplaceCartLayout({ c }) {
+export function MarketplaceCartLayout({ c, o }) {
   return (
     <section className="w-full pb-20">
       <section className="w-full px-4 md:px-8 lg:px-10 pt-6">
@@ -412,6 +440,7 @@ export function MarketplaceCartLayout({ c }) {
             {c.items.map((item) => (
               <CartItemRow key={item.product_id} c={c} item={item} variant="marketplace" />
             ))}
+            {o && <AddressSection o={o} />}
             <div className="text-center">
               <Link to="/search" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
                 {BACK_ICON}
@@ -432,7 +461,7 @@ export function MarketplaceCartLayout({ c }) {
    Layout: Minimal Premium
    ============================================================ */
 
-export function MinimalCartLayout({ c }) {
+export function MinimalCartLayout({ c, o }) {
   return (
     <section className="w-full pb-16">
       <section className="w-full px-6 md:px-10 pt-14 pb-10">
@@ -451,6 +480,11 @@ export function MinimalCartLayout({ c }) {
                 <CartItemRow key={item.product_id} c={c} item={item} variant="minimal" />
               ))}
             </div>
+            {o && (
+              <div className="mt-10 space-y-12">
+                <AddressSection o={o} />
+              </div>
+            )}
             <div className="mt-10">
               <Link to="/search" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900">
                 {BACK_ICON}
@@ -471,7 +505,7 @@ export function MinimalCartLayout({ c }) {
    Layout: Bold Editorial
    ============================================================ */
 
-export function EditorialCartLayout({ c }) {
+export function EditorialCartLayout({ c, o }) {
   return (
     <section className="w-full pb-0">
       <section className="w-full px-4 md:px-8 py-6 border-b border-black/10">
@@ -496,6 +530,11 @@ export function EditorialCartLayout({ c }) {
                 <CartItemRow key={item.product_id} c={c} item={item} variant="editorial" />
               ))}
             </div>
+            {o && (
+              <div className="mt-10 space-y-12">
+                <AddressSection o={o} />
+              </div>
+            )}
             <div className="mt-10">
               <Link to="/search" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-black font-semibold">
                 {BACK_ICON}

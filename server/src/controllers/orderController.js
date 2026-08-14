@@ -32,7 +32,7 @@ async function getOrderById(orderId, userId, conn = pool) {
   }
   const [items] = await conn.query('SELECT id, product_id, name, price, quantity FROM order_items WHERE order_id = ?', [orderId]);
   const [payments] = await conn.query(
-    'SELECT gateway, txn_id, amount, currency, status AS payment_status, refund_status FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1',
+    'SELECT id, gateway, txn_id, amount, currency, status AS payment_status, refund_status, refund_txn_id, refund_amount, created_at FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1',
     [orderId]
   );
   return { ...order, coupon, items, shipping: await getShippingForOrder(orderId, conn), payment: payments[0] || null };
@@ -71,10 +71,15 @@ export async function createOrder(req, res, next) {
       method = { id: null, name: 'Shippo (International)' };
     } else if (shippoRateId) {
       method = { id: null, name: 'Shippo Live Rate' };
-    } else {
+    } else if (req.body.shipping_method_id) {
       const [methodRows] = await conn.query('SELECT * FROM shipping_methods WHERE id = ? AND active = 1', [req.body.shipping_method_id]);
       if (methodRows.length === 0) return res.status(400).json({ message: 'Shipping method is not available' });
       method = methodRows[0];
+    } else {
+      // No method selected — free shipping is only allowed when no active methods are configured.
+      const [methodRows] = await conn.query('SELECT id FROM shipping_methods WHERE active = 1 LIMIT 1');
+      if (methodRows.length > 0) return res.status(400).json({ message: 'Shipping method is not available' });
+      method = { id: null, name: 'Free Shipping' };
     }
     const address = await resolveAddress(conn, req.user.id, req.body);
     // Send the customer's real account name to Shippo (recipient on the label).
@@ -126,7 +131,7 @@ export async function createOrder(req, res, next) {
         return res.status(400).json({ message: 'Shippo is not configured. Add an API token in Admin > Shipping.' });
       }
       shippingFee = rate && rate.fee != null && !rate.error ? Number(rate.fee) : estimateInternationalFee({ weight });
-    } else {
+    } else if (method.id) {
       shippingFee = Number(method.fee);
       try {
         const rate = await adapter.rateFor({ method, weight, destination: address, settings });
@@ -134,10 +139,12 @@ export async function createOrder(req, res, next) {
       } catch (err) {
         shippingFee = Number(method.fee);
       }
+    } else {
+      shippingFee = 0;
     }
 
     const freeThreshold = Number(settings.free_shipping_threshold);
-    if (freeThreshold && subtotal >= freeThreshold && !shippoRateId) shippingFee = 0;
+    if (freeThreshold && subtotal >= freeThreshold) shippingFee = 0;
 
     let discount = 0;
     let couponId = null;

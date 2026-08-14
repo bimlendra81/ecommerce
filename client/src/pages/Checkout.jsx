@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
@@ -15,7 +15,7 @@ import {
   selectAddressesLoading,
   clearQuote,
 } from '../features/shippingSlice'
-import { fetchPaymentConfig, selectPaymentConfig } from '../features/paymentSlice'
+import { fetchPaymentConfig, selectPaymentConfig, selectPaymentConfigStatus } from '../features/paymentSlice'
 import { selectSettings } from '../features/settingsSlice'
 import {
   MarketplaceCheckoutLayout,
@@ -24,6 +24,7 @@ import {
 } from '../components/checkout/CheckoutLayouts'
 import client from '../api/client'
 import { loadRazorpayScript } from '../utils/razorpay'
+import { bestValueQuote } from '../utils/shipping'
 import { field, useFormErrors } from '../utils/validation'
 
 const CHECKOUT_LAYOUTS = {
@@ -82,6 +83,10 @@ export default function Checkout() {
   const addressesLoading = useSelector(selectAddressesLoading)
   const settings = useSelector(selectSettings)
   const paymentConfig = useSelector(selectPaymentConfig)
+  const paymentConfigStatus = useSelector(selectPaymentConfigStatus)
+
+  const cartSignature = items.map((i) => `${i.product_id}x${i.quantity}`).join(',')
+  const prevCartSignature = useRef(cartSignature)
 
   const [error, setError] = useState('')
   const [placing, setPlacing] = useState(false)
@@ -112,6 +117,7 @@ export default function Checkout() {
     const p = readPendingPayment()
     return p?.gateway === 'razorpay' ? { order: p.order, payment: p.payment } : null
   })
+  const [paymentValidated, setPaymentValidated] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState(null)
   const [couponError, setCouponError] = useState('')
@@ -140,22 +146,71 @@ export default function Checkout() {
       }
       return
     }
-    if (!addressId) {
-      dispatch(clearQuote())
-      return
-    }
+    if (!addressId) return
     dispatch(fetchQuote({ address_id: Number(addressId) }))
-  }, [dispatch, addressId, showNewAddress, newAddress])
+  }, [dispatch, cartSignature, addressId, showNewAddress, newAddress])
 
   useEffect(() => {
-    if (quote?.quotes?.length && !methodId) {
-      const first = quote.quotes[0]
-      setMethodId(String(first.method_id))
-      if (first.shippo_rate_id) {
-        setShippoRateId(first.shippo_rate_id)
-        setShippoService(first.service || '')
-        setShippoFee(first.fee)
+    if (prevCartSignature.current !== cartSignature) {
+      prevCartSignature.current = cartSignature
+      setMethodId('')
+      setShippoRateId('')
+      setShippoService('')
+      setShippoFee(null)
+    }
+  }, [cartSignature])
+
+  useEffect(() => {
+    if (paymentConfigStatus !== 'succeeded') return
+    if (stripePayment && paymentConfig.gateway !== 'stripe') {
+      clearPendingPayment()
+      setStripePayment(null)
+      setStripePromise(null)
+      setPaymentValidated(false)
+    }
+    if (razorpayPayment && paymentConfig.gateway !== 'razorpay') {
+      clearPendingPayment()
+      setRazorpayPayment(null)
+    }
+  }, [paymentConfigStatus, paymentConfig.gateway, stripePayment, razorpayPayment])
+
+  useEffect(() => {
+    if (!stripePayment || !stripePromise) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const stripe = await stripePromise
+        if (cancelled || !stripe) return
+        const { paymentIntent } = await stripe.retrievePaymentIntent(stripePayment.clientSecret)
+        const status = paymentIntent?.status
+        const resumable = ['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(status)
+        if (resumable) {
+          setPaymentValidated(true)
+        } else {
+          clearPendingPayment()
+          setStripePayment(null)
+          setStripePromise(null)
+          setPaymentValidated(false)
+        }
+      } catch {
+        setPaymentValidated(true)
       }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [stripePayment, stripePromise])
+
+  useEffect(() => {
+    if (!quote?.quotes?.length) return
+    const current = quote.quotes.find((q) => String(q.method_id) === methodId)
+    if (current) return
+    const first = bestValueQuote(quote.quotes) || quote.quotes[0]
+    setMethodId(String(first.method_id))
+    if (first.shippo_rate_id) {
+      setShippoRateId(first.shippo_rate_id)
+      setShippoService(first.service || '')
+      setShippoFee(first.fee)
     }
   }, [quote, methodId])
 
@@ -168,13 +223,6 @@ export default function Checkout() {
   function selectAddress(id, address) {
     setAddressId(id)
     setNewAddress(address)
-  }
-
-  function selectMethod(id, quoteItem) {
-    setMethodId(id)
-    setShippoRateId(quoteItem?.shippo_rate_id || '')
-    setShippoService(quoteItem?.service || '')
-    setShippoFee(quoteItem?.fee)
   }
 
   function toggleShowNewAddress() {
@@ -254,7 +302,7 @@ export default function Checkout() {
         return
       }
     }
-    if (!methodId) {
+    if (!methodId && !shippingFree) {
       setError('Please select a shipping method')
       return
     }
@@ -297,6 +345,7 @@ export default function Checkout() {
         }
         setStripePayment(stripeState)
         setStripePromise(loadStripe(pay.publishable_key))
+        setPaymentValidated(true)
         writePendingPayment({ gateway: 'stripe', ...stripeState, publishableKey: pay.publishable_key })
         setPlacing(false)
         return
@@ -365,6 +414,12 @@ export default function Checkout() {
     )
   }
 
+  const shippingQuotes = quote?.quotes || []
+  const selectedQuote = shippingQuotes.find((q) => String(q.method_id) === methodId)
+  const effectiveQuote = selectedQuote || bestValueQuote(shippingQuotes)
+  const shippingFree = quote != null && (shippingQuotes.length === 0 || Boolean(effectiveQuote?.free))
+  const shippingResolved = !quoteLoading && quote != null && (shippingFree || methodId !== '')
+
   const o = {
     variant: settings.home_template,
     settings,
@@ -375,6 +430,9 @@ export default function Checkout() {
     quote,
     quoteLoading,
     addressesLoading,
+    effectiveQuote,
+    shippingFree,
+    shippingResolved,
     error,
     placing,
     addressId,
@@ -388,7 +446,6 @@ export default function Checkout() {
     newAddressErrors,
     clearNewAddressError,
     methodId,
-    selectMethod,
     placeOrder,
     couponCode,
     setCouponCode,
@@ -400,6 +457,7 @@ export default function Checkout() {
     paymentConfig,
     stripePayment,
     stripePromise,
+    paymentValidated,
     confirmStripePayment,
     cancelStripePayment,
     razorpayPayment,

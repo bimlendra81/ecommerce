@@ -4,6 +4,7 @@ import client from '../api/client'
 
 const statusSteps = ['pending', 'paid', 'shipped', 'in_transit', 'out_for_delivery', 'delivered']
 const terminalStatuses = ['cancelled', 'returned', 'failed']
+const paymentGatewayLabels = { razorpay: 'Razorpay', stripe: 'Stripe', test: 'Test mode' }
 
 export default function OrderDetail() {
   const { id } = useParams()
@@ -172,6 +173,63 @@ export default function OrderDetail() {
               </ol>
             </div>
           )}
+        </div>
+      )}
+
+      {order.payment && (
+        <div className="mt-6 bg-white border rounded-lg p-5">
+          <h2 className="font-bold mb-3">Payment</h2>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div>
+              <dt className="text-gray-500">Method</dt>
+              <dd className="font-medium">{paymentGatewayLabels[order.payment.gateway] || order.payment.gateway}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Status</dt>
+              <dd>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                  order.payment.payment_status === 'paid' ? 'bg-green-100 text-green-700'
+                    : order.payment.payment_status === 'failed' ? 'bg-red-100 text-red-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {order.payment.payment_status}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">Amount</dt>
+              <dd className="font-medium">${Number(order.payment.amount).toFixed(2)} {order.payment.currency}</dd>
+            </div>
+            {order.payment.txn_id && (
+              <div>
+                <dt className="text-gray-500">Transaction ID</dt>
+                <dd className="font-medium break-all">{order.payment.txn_id}</dd>
+              </div>
+            )}
+            {order.payment.created_at && (
+              <div>
+                <dt className="text-gray-500">Date</dt>
+                <dd className="font-medium">{new Date(order.payment.created_at).toLocaleString()}</dd>
+              </div>
+            )}
+            {order.payment.refund_status && order.payment.refund_status !== 'none' && (
+              <div>
+                <dt className="text-gray-500">Refund</dt>
+                <dd>
+                  {order.payment.refund_status === 'refunded' ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                      Refunded{order.payment.refund_amount ? ` · $${Number(order.payment.refund_amount).toFixed(2)}` : ''}
+                      {order.payment.refund_txn_id ? ` · ${order.payment.refund_txn_id}` : ''}
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                      Refund requested
+                    </span>
+                  )}
+                </dd>
+              </div>
+            )}
+          </dl>
         </div>
       )}
 
